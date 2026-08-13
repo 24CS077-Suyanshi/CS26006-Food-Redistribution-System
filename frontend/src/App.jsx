@@ -52,12 +52,12 @@ const INITIAL_DONATIONS = [
 
 function MainAppContent() {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState(() => localStorage.getItem('frs_activeTab') || 'home');
+  const [activeTab, setActiveTab] = useState(() => sessionStorage.getItem('frs_activeTab') || 'home');
   const [authMode, setAuthMode] = useState(() => localStorage.getItem('frs_authMode') || 'login');
   const [authRole, setAuthRole] = useState(() => localStorage.getItem('frs_authRole') || 'donor');
 
   useEffect(() => {
-    localStorage.setItem('frs_activeTab', activeTab);
+    sessionStorage.setItem('frs_activeTab', activeTab);
     localStorage.setItem('frs_authMode', authMode);
     localStorage.setItem('frs_authRole', authRole);
   }, [activeTab, authMode, authRole]);

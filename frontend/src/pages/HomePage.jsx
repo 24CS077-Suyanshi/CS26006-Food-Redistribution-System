@@ -140,7 +140,7 @@ export default function HomePage({ onOpenAuth }) {
         </div>
 
         <div className="relative mx-auto grid w-full max-w-7xl gap-12 px-4 pb-20 pt-16 md:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:pt-24 lg:pb-28">
-          
+
           {/* Left Column - Content */}
           <div className="flex flex-col justify-center relative z-10">
             <div className="flex items-center gap-2 mb-6">
@@ -149,13 +149,13 @@ export default function HomePage({ onOpenAuth }) {
                 Zero Hunger Initiative
               </span>
             </div>
-            
+
             <h1 className="text-4xl font-black leading-[1.1] tracking-tight text-slate-900 md:text-5xl lg:text-6xl">
               Rescue Food.<br />
               <span className="text-emerald-500">Feed Hope.</span><br />
               Build Community.
             </h1>
-            
+
             <p className="mt-6 max-w-2xl text-lg font-medium text-slate-600 leading-relaxed md:text-xl">
               Empowering local businesses, organizations, households, and volunteers to redirect surplus food to communities in need. Reduce food waste, support people, and build a stronger community together.
             </p>
@@ -170,9 +170,9 @@ export default function HomePage({ onOpenAuth }) {
             {/* Dynamic abstract background shapes for glass effect */}
             <div className="absolute top-10 right-10 w-48 h-48 rounded-full bg-gradient-to-tr from-emerald-300 to-emerald-500 blur-3xl opacity-40 mix-blend-multiply animate-pulse"></div>
             <div className="absolute bottom-10 left-10 w-56 h-56 rounded-full bg-gradient-to-br from-teal-300 to-cyan-400 blur-3xl opacity-40 mix-blend-multiply"></div>
-            
+
             <div className="relative w-full rounded-[2rem] border border-slate-200 bg-white/90 p-6 shadow-2xl shadow-emerald-900/10 backdrop-blur-xl md:p-8">
-              
+
               <div className="flex items-center justify-between mb-8">
                 <div>
                   <h3 className="text-xs font-black uppercase tracking-widest text-emerald-600 flex items-center gap-2">
@@ -276,17 +276,17 @@ export default function HomePage({ onOpenAuth }) {
           ].map((item) => {
             const Icon = item.icon;
             return (
-                <article
-                  key={item.title}
-                  className="group relative overflow-hidden rounded-[2rem] bg-white p-8 shadow-sm ring-1 ring-slate-200/50 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-emerald-900/5 hover:ring-emerald-200"
-                >
-                  <div className="absolute -right-12 -top-12 h-32 w-32 rounded-full bg-emerald-50/50 blur-2xl transition-all group-hover:bg-emerald-100"></div>
-                  <span className="relative inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500 text-white shadow-lg shadow-emerald-500/30">
-                    <Icon size={24} />
-                  </span>
-                  <h3 className="mt-6 text-xl font-black text-slate-900">{item.title}</h3>
-                  <p className="mt-3 text-sm font-medium leading-relaxed text-slate-600">{item.text}</p>
-                </article>
+              <article
+                key={item.title}
+                className="group relative overflow-hidden rounded-[2rem] bg-white p-8 shadow-sm ring-1 ring-slate-200/50 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-emerald-900/5 hover:ring-emerald-200"
+              >
+                <div className="absolute -right-12 -top-12 h-32 w-32 rounded-full bg-emerald-50/50 blur-2xl transition-all group-hover:bg-emerald-100"></div>
+                <span className="relative inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500 text-white shadow-lg shadow-emerald-500/30">
+                  <Icon size={24} />
+                </span>
+                <h3 className="mt-6 text-xl font-black text-slate-900">{item.title}</h3>
+                <p className="mt-3 text-sm font-medium leading-relaxed text-slate-600">{item.text}</p>
+              </article>
             );
           })}
         </div>
@@ -297,10 +297,10 @@ export default function HomePage({ onOpenAuth }) {
         <div className="mx-auto w-full max-w-7xl px-4 md:px-6">
           <SectionHeader kicker="Process" title="How It Works" center />
 
-          <div className="mt-12 grid gap-6 md:grid-cols-5 relative">
+          <div className="mt-12 grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 relative">
             {/* Connecting line */}
-            <div className="hidden md:block absolute top-1/2 left-0 w-full h-0.5 bg-gradient-to-r from-emerald-100 via-emerald-300 to-emerald-100 -translate-y-12"></div>
-            
+            <div className="hidden lg:block absolute top-1/2 left-0 w-full h-0.5 bg-gradient-to-r from-emerald-100 via-emerald-300 to-emerald-100 -translate-y-12"></div>
+
             {steps.map((item, index) => {
               const Icon = item.icon;
               return (
@@ -311,8 +311,8 @@ export default function HomePage({ onOpenAuth }) {
                   <span className="relative mx-auto mb-5 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-white text-emerald-600 ring-1 ring-slate-200/60 transition-transform group-hover:scale-110 group-hover:bg-emerald-500 group-hover:text-white group-hover:shadow-lg group-hover:shadow-emerald-500/30">
                     <Icon size={28} />
                   </span>
-                  <h3 className="text-lg font-black text-slate-900">{item.title}</h3>
-                  <p className="mt-2 text-sm font-semibold text-slate-600 leading-relaxed">{item.text}</p>
+                  <h3 className="text-lg md:text-xl font-black text-slate-900">{item.title}</h3>
+                  <p className="mt-2 text-sm md:text-base font-medium text-slate-600 leading-relaxed">{item.text}</p>
                 </article>
               );
             })}
@@ -324,7 +324,7 @@ export default function HomePage({ onOpenAuth }) {
       <section id="features-section" className="mx-auto w-full max-w-7xl px-4 py-16 md:px-6">
         <SectionHeader kicker="Platform Capabilities" title="Features" />
 
-        <div className="mt-8 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {features.map((item) => {
             const Icon = item.icon;
             return (
@@ -336,8 +336,8 @@ export default function HomePage({ onOpenAuth }) {
                 <span className="relative inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-slate-600 shadow-sm ring-1 ring-slate-200 transition-all group-hover:scale-110 group-hover:bg-emerald-500 group-hover:text-white group-hover:ring-emerald-500">
                   <Icon size={22} />
                 </span>
-                <h3 className="relative mt-5 text-lg font-black text-slate-900 transition-colors group-hover:text-emerald-700">{item.title}</h3>
-                <p className="relative mt-2 text-sm font-semibold text-slate-600 leading-relaxed">{item.text}</p>
+                <h3 className="relative mt-5 text-lg md:text-xl font-black text-slate-900 transition-colors group-hover:text-emerald-700">{item.title}</h3>
+                <p className="relative mt-2 text-sm md:text-base font-medium text-slate-600 leading-relaxed">{item.text}</p>
               </article>
             );
           })}
@@ -348,7 +348,7 @@ export default function HomePage({ onOpenAuth }) {
       <section ref={impactRef} className="relative overflow-hidden bg-white py-24">
         {/* Soft background glow */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] rounded-full bg-emerald-400/5 blur-[100px] pointer-events-none"></div>
-        
+
         <div className="relative mx-auto w-full max-w-7xl px-4 md:px-6">
           <SectionHeader kicker="Real Impact" title="Platform Impact" center />
 
@@ -358,13 +358,13 @@ export default function HomePage({ onOpenAuth }) {
               return (
                 <article key={item.key} className="group relative overflow-hidden rounded-[2rem] bg-white p-6 text-center shadow-sm ring-1 ring-slate-200/60 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-emerald-900/10 hover:ring-emerald-200">
                   <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/0 via-teal-500/0 to-emerald-500/0 transition-all group-hover:from-emerald-50/50 group-hover:to-transparent"></div>
-                  
+
                   <span className="absolute top-0 right-0 bg-slate-50 text-slate-400 text-[9px] font-extrabold uppercase tracking-widest px-3 py-1 rounded-bl-xl z-10 transition-colors group-hover:bg-emerald-100 group-hover:text-emerald-700">Demo</span>
-                  
+
                   <div className="relative mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-50 text-emerald-600 ring-1 ring-slate-100 transition-transform duration-300 group-hover:scale-110 group-hover:bg-emerald-500 group-hover:text-white group-hover:shadow-lg group-hover:shadow-emerald-500/30">
                     <Icon size={28} />
                   </div>
-                  
+
                   <p className="relative text-3xl font-black text-slate-900 mt-2 transition-colors group-hover:text-emerald-700">
                     {formatNumber(counts[item.key] || 0)}
                     <span className="text-emerald-500">{item.suffix}</span>
@@ -419,19 +419,19 @@ export default function HomePage({ onOpenAuth }) {
             <Mail className="text-emerald-600" size={20} />
             <p className="mt-3 text-xs font-semibold uppercase tracking-wider text-slate-500">Email</p>
             {/* REPLACE WITH REAL EMAIL LATER */}
-            <p className="mt-1 text-sm font-bold text-slate-800">your-email@example.com</p>
+            <p className="mt-1 text-sm font-bold text-slate-800">foodshare@gmail.com</p>
           </article>
           <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
             <Phone className="text-emerald-600" size={20} />
             <p className="mt-3 text-xs font-semibold uppercase tracking-wider text-slate-500">Phone</p>
             {/* REPLACE WITH REAL PHONE LATER */}
-            <p className="mt-1 text-sm font-bold text-slate-800">+91 XXXXX XXXXX</p>
+            <p className="mt-1 text-sm font-bold text-slate-800">+91 87659 84532</p>
           </article>
           <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
             <MapPin className="text-emerald-600" size={20} />
             <p className="mt-3 text-xs font-semibold uppercase tracking-wider text-slate-500">Address</p>
             {/* REPLACE WITH REAL ADDRESS LATER */}
-            <p className="mt-1 text-sm font-bold text-slate-800">Ahmedabad, Gujarat, India</p>
+            <p className="mt-1 text-sm font-bold text-slate-800">Nadiad, Gujarat, India</p>
           </article>
         </div>
       </section>
