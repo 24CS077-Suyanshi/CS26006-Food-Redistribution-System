@@ -36,7 +36,6 @@ const features = [
   { title: 'Food Donation Management', icon: Building2, text: 'Donors can post, manage, and track surplus food donations.' },
   { title: 'NGO Coordination', icon: HeartHandshake, text: 'Verified NGOs can browse donations and submit food requests.' },
   { title: 'Volunteer Support', icon: Truck, text: 'Volunteers can view and accept pickup and delivery tasks.' },
-  { title: 'Food Tracking', icon: Route, text: 'Track food from donation and request to pickup and final delivery.' },
   { title: 'Feedback & Ratings', icon: Star, text: 'Build trust through feedback and ratings after successful food delivery.' },
   { title: 'Food Freshness Prediction', icon: Sparkles, text: 'Help assess the freshness or safe consumption window of donated food.' }
 ];
