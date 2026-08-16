@@ -5,6 +5,7 @@ import AuthPage from './pages/AuthPage';
 import HomePage from './pages/HomePage';
 import Dashboard from './pages/Dashboard';
 
+//Java script object
 const INITIAL_DONATIONS = [
   {
     id: 101,
@@ -50,6 +51,7 @@ const INITIAL_DONATIONS = [
   }
 ];
 
+//when user login set the user in local storage
 function MainAppContent() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState(() => sessionStorage.getItem('frs_activeTab') || 'home');
@@ -74,54 +76,57 @@ function MainAppContent() {
     }
   ]);
 
+  //when someone click on login or signup in navbar open auth page 
   const handleOpenAuth = (mode = 'login', role = 'donor') => {
-    setAuthMode(mode);
-    setAuthRole(role);
-    setActiveTab('auth');
+    setAuthMode(mode);//which mode it is login or signup
+    setAuthRole(role);//which role it is donor or ngo or volunteer
+    setActiveTab('auth');//which tab it is home or auth or dashboard
   };
 
+  //use of conditional rending
   return (
     <div className="app-container">
-      <Navbar 
-        activeTab={activeTab} 
-        setActiveTab={setActiveTab} 
-        onOpenAuth={handleOpenAuth} 
+      <Navbar
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        onOpenAuth={handleOpenAuth}
       />
-      
+
       <main className="main-content">
+        {/*Javascript logical statement */}
         {activeTab === 'home' && (
-          <HomePage 
-            donations={donations} 
+          <HomePage
+            donations={donations}
             onNavigateToTab={(tab) => {
               if (tab === 'login' || !user) {
                 handleOpenAuth('login');
               } else {
                 setActiveTab('dashboard');
               }
-            }} 
+            }}
             onOpenAuth={handleOpenAuth}
           />
         )}
 
         {activeTab === 'auth' && (
-          <AuthPage 
+          <AuthPage
             initialMode={authMode}
             initialRole={authRole}
-            onLoginSuccess={() => setActiveTab('dashboard')} 
+            onLoginSuccess={() => setActiveTab('dashboard')}
             onModeChange={setAuthMode}
           />
         )}
 
         {activeTab === 'dashboard' && !user && (
-          <AuthPage 
+          <AuthPage
             initialMode="login"
-            onLoginSuccess={() => setActiveTab('dashboard')} 
+            onLoginSuccess={() => setActiveTab('dashboard')}
             onModeChange={setAuthMode}
           />
         )}
 
         {activeTab === 'dashboard' && user && (
-          <Dashboard 
+          <Dashboard
             donations={donations}
             setDonations={setDonations}
             requests={requests}
