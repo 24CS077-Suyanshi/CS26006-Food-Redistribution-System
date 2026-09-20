@@ -4,6 +4,8 @@ import Navbar from './components/Navbar';
 import AuthPage from './pages/AuthPage';
 import HomePage from './pages/HomePage';
 import Dashboard from './pages/Dashboard';
+import { Toaster } from 'react-hot-toast';
+import axios from 'axios';
 
 //Java script object
 const INITIAL_DONATIONS = [
@@ -64,17 +66,25 @@ function MainAppContent() {
     localStorage.setItem('frs_authRole', authRole);
   }, [activeTab, authMode, authRole]);
 
-  const [donations, setDonations] = useState(INITIAL_DONATIONS);
-  const [requests, setRequests] = useState([
-    {
-      id: 201,
-      donation_id: 103,
-      title: 'Catered Packed Meals',
-      ngo_name: 'Hope Shelter NGO',
-      status: 'Pending',
-      otp_code: '4829'
-    }
-  ]);
+  const [donations, setDonations] = useState([]);
+  const [requests, setRequests] = useState([]);
+
+  useEffect(() => {
+    // Fetch data from backend API
+    const fetchData = async () => {
+      try {
+        const [donationsRes, requestsRes] = await Promise.all([
+          axios.get('http://127.0.0.1:5000/api/donations'),
+          axios.get('http://127.0.0.1:5000/api/requests')
+        ]);
+        setDonations(donationsRes.data);
+        setRequests(requestsRes.data);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+    fetchData();
+  }, []);
 
   //when someone click on login or signup in navbar open auth page 
   const handleOpenAuth = (mode = 'login', role = 'donor') => {
@@ -86,6 +96,7 @@ function MainAppContent() {
   //use of conditional rending
   return (
     <div className="app-container">
+      <Toaster position="top-right" />
       <Navbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}

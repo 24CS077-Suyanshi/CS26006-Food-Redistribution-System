@@ -13,14 +13,17 @@ import {
   ShieldCheck,
   Truck,
   User,
-  Utensils
+  Utensils,
+  Loader2
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import axios from 'axios';
 
 const roles = [
   { id: 'donor', label: 'Donor', hint: 'Restaurants, hotels, caterers', icon: Building2 },
   { id: 'ngo', label: 'NGO', hint: 'Shelters and social groups', icon: HeartHandshake },
-  { id: 'volunteer', label: 'Volunteer', hint: 'Pickup and delivery support', icon: Truck }
+  { id: 'volunteer', label: 'Volunteer', hint: 'Pickup and delivery support', icon: Truck },
+  { id: 'admin', label: 'Admin', hint: 'Platform control & audit', icon: ShieldCheck }
 ];
 
 const donorOrgTypes = ['Restaurant', 'Hotel', 'Caterer', 'Household', 'Other'];
@@ -34,6 +37,7 @@ export default function AuthPage({ onLoginSuccess, initialMode = 'login', initia
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [validationError, setValidationError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -59,65 +63,175 @@ export default function AuthPage({ onLoginSuccess, initialMode = 'login', initia
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = (event) => {
+  const getLocalRegisteredUsers = () => {
+    try {
+      const stored = localStorage.getItem('frs_registered_users');
+      if (stored) return JSON.parse(stored);
+    } catch (_) {}
+    return [
+      { id: 1, name: "Grand Hyatt Hotel", email: "donor@frs.org", password: "password123", role: "donor", address: "Downtown Center, Block 4", organizationType: "Hotel" },
+      { id: 2, name: "Hope Shelter NGO", email: "ngo@frs.org", password: "password123", role: "ngo", address: "Westside Care Center", organizationType: "NGO" },
+      { id: 3, name: "Alex Smith", email: "volunteer@frs.org", password: "password123", role: "volunteer", address: "City Center", organizationType: "Individual" },
+      { id: 4, name: "System Administrator", email: "admin@frs.org", password: "password123", role: "admin", address: "Central Command HQ", organizationType: "Admin" }
+    ];
+  };
+
+  const saveLocalUser = (newUser) => {
+    try {
+      const users = getLocalRegisteredUsers();
+      users.push(newUser);
+      localStorage.setItem('frs_registered_users', JSON.stringify(users));
+    } catch (_) {}
+  };
+
+  const handleLocalFallbackLogin = (email, password, requestedRole) => {
+    const allUsers = getLocalRegisteredUsers();
+    const userMatch = allUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
+
+    if (!userMatch) {
+      setValidationError('Invalid email or password. Account not found.');
+      return;
+    }
+
+    if (userMatch.password !== password) {
+      setValidationError('Invalid email or password.');
+      return;
+    }
+
+    // Strict Role Validation
+    if (userMatch.role.toLowerCase() !== requestedRole.toLowerCase()) {
+      setValidationError(`Role Mismatch! This account is registered as '${userMatch.role.toUpperCase()}'. You cannot log in under the '${requestedRole.toUpperCase()}' role. Please select the '${userMatch.role.toUpperCase()}' tab.`);
+      return;
+    }
+
+    login(userMatch, 'local_jwt_token_2026');
+    if (onLoginSuccess) onLoginSuccess();
+  };
+
+  const handleLocalFallbackRegister = (name, email, password, targetRole) => {
+    const allUsers = getLocalRegisteredUsers();
+    if (allUsers.some(u => u.email.toLowerCase() === email.toLowerCase())) {
+      setValidationError('User with this email already exists. Please login instead.');
+      return;
+    }
+
+    const newUser = {
+      id: Date.now(),
+      name: name || 'User',
+      email: email,
+      password: password,
+      role: targetRole,
+      phone: formData.phone || '',
+      address: formData.address || '',
+      organizationType: formData.organizationType || targetRole.toUpperCase()
+    };
+
+    saveLocalUser(newUser);
+    login(newUser, 'local_jwt_token_2026');
+    if (onLoginSuccess) onLoginSuccess();
+  };
+
+  const handleSubmit = async (event) => {
     event.preventDefault();
     setValidationError('');
 
+    const normalizedEmail = (formData.email || '').trim().toLowerCase();
+    const password = formData.password;
+
+    if (!normalizedEmail) {
+      setValidationError('Email is required.');
+      return;
+    }
+
+    if (!password) {
+      setValidationError('Password is required.');
+      return;
+    }
+
     if (!isLogin) {
-      if (formData.password.length < 6) {
+      if (password.length < 6) {
         setValidationError('Password must be at least 6 characters long.');
         return;
       }
-      if (formData.password !== formData.confirmPassword) {
+      if (password !== formData.confirmPassword) {
         setValidationError('Passwords do not match. Please re-enter.');
         return;
       }
     }
 
-    let savedName = '';
+    setLoading(true);
+
     if (isLogin) {
       try {
-        const saved = JSON.parse(localStorage.getItem('frs_user') || '{}');
-        if (saved.name && saved.role === role) {
-          savedName = saved.name;
+        const response = await axios.post('http://127.0.0.1:5000/api/auth/login', {
+          email: normalizedEmail,
+          password: password,
+          role: role
+        });
+
+        const loggedInUser = response.data.user;
+        login(loggedInUser, response.data.token);
+        if (onLoginSuccess) onLoginSuccess();
+      } catch (err) {
+        if (err.response) {
+          const errMsg = err.response.data?.error || 'Login failed. Please check your credentials.';
+          setValidationError(errMsg);
+        } else {
+          // Backend offline or unreachable - use local fallback with role enforcement
+          handleLocalFallbackLogin(normalizedEmail, password, role);
         }
-      } catch (_) { }
-    }
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      // Register
+      try {
+        const response = await axios.post('http://127.0.0.1:5000/api/auth/register', {
+          name: formData.name.trim() || 'User',
+          email: normalizedEmail,
+          password: password,
+          role: role,
+          phone: formData.phone,
+          address: formData.address,
+          organization_type: formData.organizationType
+        });
 
-    const mockUser = {
-      id: Date.now(),
-      name:
-        formData.name ||
-        savedName ||
-        (role === 'donor' ? 'Grand Hyatt Hotel' : role === 'ngo' ? 'Hope Shelter NGO' : 'Alex Smith'),
-      email: formData.email || `${role}@foodshare.org`,
-      role,
-      phone: formData.phone || '+91 9876543210',
-      address: formData.address || 'Downtown City Center, Block 4',
-      organizationType: formData.organizationType
-    };
+        const newUser = response.data.user;
+        saveLocalUser({
+          id: newUser.id,
+          name: newUser.name,
+          email: newUser.email,
+          password: password,
+          role: newUser.role,
+          phone: formData.phone,
+          address: formData.address,
+          organizationType: formData.organizationType
+        });
 
-    login(mockUser, 'mock_jwt_token_2026');
-    if (onLoginSuccess) {
-      onLoginSuccess();
+        login(newUser, response.data.token);
+        if (onLoginSuccess) onLoginSuccess();
+      } catch (err) {
+        if (err.response) {
+          const errMsg = err.response.data?.error || 'Registration failed.';
+          setValidationError(errMsg);
+        } else {
+          handleLocalFallbackRegister(formData.name.trim(), normalizedEmail, password, role);
+        }
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
   const handleDemoAccess = () => {
-    const demoUser = {
-      id: 1,
-      name:
-        role === 'donor'
-          ? 'Grand Hyatt Hotel'
-          : role === 'ngo'
-            ? 'Hope Shelter NGO'
-            : 'Alex Smith',
-      email: `${role}@foodshare.org`,
-      role,
-      phone: '+91 9876543210',
-      address: 'Downtown City Center'
+    const demoProfiles = {
+      donor: { id: 1, name: 'Grand Hyatt Hotel', email: 'donor@frs.org', role: 'donor', phone: '+91 9876543210', address: 'Downtown Center, Block 4', organizationType: 'Hotel' },
+      ngo: { id: 2, name: 'Hope Shelter NGO', email: 'ngo@frs.org', role: 'ngo', phone: '+91 9876543211', address: 'Westside Care Center', organizationType: 'NGO' },
+      volunteer: { id: 3, name: 'Alex Smith', email: 'volunteer@frs.org', role: 'volunteer', phone: '+91 9876543212', address: 'City Center', organizationType: 'Individual' },
+      admin: { id: 4, name: 'System Administrator', email: 'admin@frs.org', role: 'admin', phone: '+91 9876543213', address: 'Central Command HQ', organizationType: 'Admin' }
     };
 
+    const demoUser = demoProfiles[role] || demoProfiles.donor;
     login(demoUser, 'demo_jwt_token_2026');
     if (onLoginSuccess) {
       onLoginSuccess();
@@ -149,7 +263,7 @@ export default function AuthPage({ onLoginSuccess, initialMode = 'login', initia
         {/* Role Selector */}
         <div className="mb-6">
           <p className="mb-2 text-xs font-bold uppercase tracking-wider text-slate-500">Select Role</p>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {roles.map((item) => {
               const Icon = item.icon;
               const active = role === item.id;
@@ -334,9 +448,27 @@ export default function AuthPage({ onLoginSuccess, initialMode = 'login', initia
 
           <button
             type="submit"
-            className="mt-2 inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-6 py-3 text-base font-extrabold text-white shadow-md transition hover:bg-emerald-700"
+            disabled={loading}
+            className="mt-2 inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-6 py-3 text-base font-extrabold text-white shadow-md transition hover:bg-emerald-700 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            {isLogin ? 'Login' : 'Create Account'} <ArrowRight size={18} />
+            {loading ? (
+              <>
+                <Loader2 size={18} className="animate-spin" />
+                <span>Processing...</span>
+              </>
+            ) : (
+              <>
+                {isLogin ? 'Login' : 'Create Account'} <ArrowRight size={18} />
+              </>
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={handleDemoAccess}
+            className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-emerald-500 bg-emerald-50/80 px-4 py-2.5 text-sm font-black text-emerald-800 transition hover:bg-emerald-100 cursor-pointer"
+          >
+            ⚡ 1-Click Demo Login as {role.toUpperCase()}
           </button>
 
           <div className="mt-2 text-center text-sm font-semibold text-slate-600">

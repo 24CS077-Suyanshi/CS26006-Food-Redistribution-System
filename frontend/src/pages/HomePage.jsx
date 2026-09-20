@@ -159,9 +159,29 @@ export default function HomePage({ onOpenAuth }) {
               Empowering local businesses, organizations, households, and volunteers to redirect surplus food to communities in need. Reduce food waste, support people, and build a stronger community together.
             </p>
 
-
-
-
+            <div className="mt-8 flex flex-wrap items-center gap-4">
+              <button
+                type="button"
+                onClick={() => onOpenAuth?.('register', 'donor')}
+                className="inline-flex items-center gap-2 rounded-2xl bg-emerald-600 px-7 py-3.5 text-base font-black text-white shadow-lg shadow-emerald-600/30 transition hover:bg-emerald-700 hover:-translate-y-0.5 cursor-pointer"
+              >
+                Donate Food <ArrowRight size={18} />
+              </button>
+              <button
+                type="button"
+                onClick={() => onOpenAuth?.('register', 'ngo')}
+                className="inline-flex items-center gap-2 rounded-2xl border-2 border-emerald-300 bg-white px-7 py-3.5 text-base font-black text-emerald-800 shadow-sm transition hover:bg-emerald-50 hover:-translate-y-0.5 cursor-pointer"
+              >
+                Request as NGO
+              </button>
+              <button
+                type="button"
+                onClick={() => onOpenAuth?.('register', 'volunteer')}
+                className="inline-flex items-center gap-2 rounded-2xl border-2 border-slate-200 bg-white px-6 py-3.5 text-base font-black text-slate-700 shadow-sm transition hover:bg-slate-50 hover:-translate-y-0.5 cursor-pointer"
+              >
+                Join as Volunteer
+              </button>
+            </div>
           </div>
 
           {/* Right Column - Live Impact Glass Card */}

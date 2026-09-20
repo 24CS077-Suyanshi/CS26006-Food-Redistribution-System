@@ -1,0 +1,74 @@
+[
+  {
+    "id": 1,
+    "name": "Grand Hyatt Hotel",
+    "email": "donor@frs.org",
+    "password": "password123",
+    "role": "donor",
+    "phone": "+91 9876543210",
+    "address": "Downtown Center, Block 4",
+    "organization_type": "Hotel",
+    "is_verified": true,
+    "created_at": "2026-07-15 10:30:00"
+  },
+  {
+    "id": 2,
+    "name": "Hope Shelter NGO",
+    "email": "ngo@frs.org",
+    "password": "password123",
+    "role": "ngo",
+    "phone": "+91 9876543211",
+    "address": "Westside Care Center",
+    "organization_type": "NGO",
+    "is_verified": true,
+    "created_at": "2026-07-18 14:15:00"
+  },
+  {
+    "id": 3,
+    "name": "Alex Smith",
+    "email": "volunteer@frs.org",
+    "password": "password123",
+    "role": "volunteer",
+    "phone": "+91 9876543212",
+    "address": "City Center",
+    "organization_type": "Individual",
+    "is_verified": true,
+    "created_at": "2026-08-01 09:00:00"
+  },
+  {
+    "id": 4,
+    "name": "System Administrator",
+    "email": "admin@frs.org",
+    "password": "password123",
+    "role": "admin",
+    "phone": "+91 9876543213",
+    "address": "Central Command HQ",
+    "organization_type": "Admin",
+    "is_verified": true,
+    "created_at": "2026-01-01 00:00:00"
+  },
+  {
+    "id": 5,
+    "name": "John",
+    "email": "john@gamil.com",
+    "password": "234567",
+    "role": "donor",
+    "phone": "+91 9876543210",
+    "address": "City Center",
+    "organization_type": "Restaurant",
+    "is_verified": true,
+    "created_at": "2026-09-20 15:00:00"
+  },
+  {
+    "id": 6,
+    "name": "John",
+    "email": "john@gmail.com",
+    "password": "234567",
+    "role": "donor",
+    "phone": "+91 9876543210",
+    "address": "City Center",
+    "organization_type": "Restaurant",
+    "is_verified": true,
+    "created_at": "2026-09-20 15:00:00"
+  }
+]

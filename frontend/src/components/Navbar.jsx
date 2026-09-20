@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Menu, UserPlus, Utensils, X, LogIn } from 'lucide-react';
+import { Menu, UserPlus, Utensils, X, LogIn, LayoutDashboard, LogOut } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const navItems = [
   { label: 'Home', id: 'home-section' },
@@ -10,6 +11,7 @@ const navItems = [
 ];
 
 export default function Navbar({ activeTab, setActiveTab, onOpenAuth }) {
+  const { user, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const goTo = (sectionId) => {
@@ -59,20 +61,44 @@ export default function Navbar({ activeTab, setActiveTab, onOpenAuth }) {
 
         {/* Action Buttons - Large & Bold */}
         <div className="hidden items-center gap-4 lg:flex">
-          <button
-            type="button"
-            onClick={() => onOpenAuth?.('login', 'donor')}
-            className="inline-flex items-center gap-2 rounded-full border-2 border-emerald-300 bg-white px-6 py-2.5 text-base font-black text-emerald-700 shadow-xs transition hover:bg-emerald-50"
-          >
-            <LogIn size={18} /> Login
-          </button>
-          <button
-            type="button"
-            onClick={() => onOpenAuth?.('register', 'donor')}
-            className="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-7 py-2.5 text-base font-black text-white shadow-lg shadow-emerald-600/30 transition hover:bg-emerald-700"
-          >
-            <UserPlus size={18} /> Register
-          </button>
+          {user ? (
+            <>
+              <button
+                type="button"
+                onClick={() => setActiveTab('dashboard')}
+                className="inline-flex items-center gap-2 rounded-full border-2 border-emerald-500 bg-emerald-50 px-5 py-2.5 text-base font-black text-emerald-800 shadow-xs transition hover:bg-emerald-100 cursor-pointer"
+              >
+                <LayoutDashboard size={18} /> {user.role === 'admin' ? 'Admin Dashboard' : `${user.role.toUpperCase()} Dashboard`}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  logout();
+                  setActiveTab('home');
+                }}
+                className="inline-flex items-center gap-2 rounded-full bg-rose-50 border border-rose-200 px-5 py-2.5 text-base font-bold text-rose-600 transition hover:bg-rose-100 cursor-pointer"
+              >
+                <LogOut size={18} /> Logout
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={() => onOpenAuth?.('login', 'donor')}
+                className="inline-flex items-center gap-2 rounded-full border-2 border-emerald-300 bg-white px-6 py-2.5 text-base font-black text-emerald-700 shadow-xs transition hover:bg-emerald-50 cursor-pointer"
+              >
+                <LogIn size={18} /> Login
+              </button>
+              <button
+                type="button"
+                onClick={() => onOpenAuth?.('register', 'donor')}
+                className="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-7 py-2.5 text-base font-black text-white shadow-lg shadow-emerald-600/30 transition hover:bg-emerald-700 cursor-pointer"
+              >
+                <UserPlus size={18} /> Register
+              </button>
+            </>
+          )}
         </div>
 
         {/* Mobile Menu Toggle */}
@@ -103,26 +129,54 @@ export default function Navbar({ activeTab, setActiveTab, onOpenAuth }) {
           </div>
 
           <div className="mt-4 grid grid-cols-2 gap-3 border-t border-slate-100 pt-4">
-            <button
-              type="button"
-              onClick={() => {
-                setMenuOpen(false);
-                onOpenAuth?.('login', 'donor');
-              }}
-              className="rounded-xl border-2 border-emerald-300 px-4 py-3 text-center text-base font-black text-emerald-700"
-            >
-              Login
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setMenuOpen(false);
-                onOpenAuth?.('register', 'donor');
-              }}
-              className="rounded-xl bg-emerald-600 px-4 py-3 text-center text-base font-black text-white shadow-md shadow-emerald-600/30"
-            >
-              Register
-            </button>
+            {user ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    setActiveTab('dashboard');
+                  }}
+                  className="rounded-xl border-2 border-emerald-500 bg-emerald-50 px-4 py-3 text-center text-sm font-black text-emerald-800"
+                >
+                  Dashboard ({user.role.toUpperCase()})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    logout();
+                    setActiveTab('home');
+                  }}
+                  className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-center text-sm font-black text-rose-600"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    onOpenAuth?.('login', 'donor');
+                  }}
+                  className="rounded-xl border-2 border-emerald-300 px-4 py-3 text-center text-base font-black text-emerald-700"
+                >
+                  Login
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    onOpenAuth?.('register', 'donor');
+                  }}
+                  className="rounded-xl bg-emerald-600 px-4 py-3 text-center text-base font-black text-white shadow-md shadow-emerald-600/30"
+                >
+                  Register
+                </button>
+              </>
+            )}
           </div>
         </div>
       )}

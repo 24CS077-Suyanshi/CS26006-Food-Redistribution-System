@@ -13,6 +13,8 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import DashboardLayout from '../components/DashboardLayout';
+import toast from 'react-hot-toast';
+import axios from 'axios';
 
 export default function NGODashboard({ donations = [], requests = [], setRequests }) {
   const { user, updateUser } = useAuth();
@@ -46,18 +48,27 @@ export default function NGODashboard({ donations = [], requests = [], setRequest
     d.location.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleClaimFood = (donationId, title) => {
+  const handleClaimFood = async (donationId, title) => {
     if (!setRequests) return;
-    const newRequest = {
-      id: Date.now(),
-      donation_id: donationId,
-      title: title,
-      ngo_name: user?.name || 'NGO User',
-      status: 'Pending',
-      otp_code: Math.floor(1000 + Math.random() * 9000).toString()
-    };
-    setRequests([newRequest, ...requests]);
-    alert(`Successfully submitted claim for ${title}. Wait for approval.`);
+    
+    // Optimistic UI update or loading toast
+    const loadingToast = toast.loading(`Submitting claim for ${title}...`);
+    
+    try {
+      const response = await axios.post('http://127.0.0.1:5000/api/requests', {
+        donation_id: donationId,
+        ngo_name: user?.name || 'NGO User',
+        ngo_id: user?.id || 2
+      });
+      
+      const newRequest = response.data.request;
+      
+      setRequests(prev => [newRequest, ...prev]);
+      toast.success(`Successfully submitted claim for ${title}. Wait for approval.`, { id: loadingToast });
+    } catch (error) {
+      console.error('Error claiming food:', error);
+      toast.error(`Failed to claim ${title}. Please try again.`, { id: loadingToast });
+    }
   };
 
   return (
@@ -291,6 +302,7 @@ export default function NGODashboard({ donations = [], requests = [], setRequest
                 e.preventDefault();
                 updateUser({ name: profileForm.name.trim(), address: profileForm.address.trim() });
                 setProfileSaved(true);
+                toast.success('Profile updated successfully!');
                 setTimeout(() => setProfileSaved(false), 2500);
               }}
             >

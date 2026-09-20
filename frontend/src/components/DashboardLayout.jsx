@@ -10,7 +10,7 @@ export default function DashboardLayout({
   searchQuery, 
   setSearchQuery 
 }) {
-  const { user, logout } = useAuth();
+  const { user, logout, switchRole } = useAuth();
 
   return (
     <div style={{
@@ -136,7 +136,30 @@ export default function DashboardLayout({
           </div>
 
           {/* Top Right Controls */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              background: '#F8FAFC',
+              padding: '0.35rem 0.75rem',
+              borderRadius: '12px',
+              border: '1px solid var(--border-subtle)'
+            }}>
+              <span style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                Role:
+              </span>
+              <span style={{
+                fontWeight: 800,
+                fontSize: '0.84rem',
+                color: user?.role === 'admin' ? '#7C3AED' : 'var(--primary-dark)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.03em'
+              }}>
+                {user?.role === 'admin' ? '🛡️ Admin' : user?.role || 'Donor'}
+              </span>
+            </div>
+
             <div style={{ position: 'relative', cursor: 'pointer' }} onClick={() => setActiveTab('notifications')}>
               <Bell size={20} color="var(--text-muted)" />
               <span style={{

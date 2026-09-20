@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
 import DonorDashboard from './DonorDashboard';
-import NGODashboard from './NGODashboard';
+import NGODashboard from './NgoDashboard';
 import VolunteerDashboard from './VolunteerDashboard';
 import AdminDashboard from './AdminDashboard';
 

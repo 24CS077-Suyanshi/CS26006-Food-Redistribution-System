@@ -16,6 +16,8 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import DashboardLayout from '../components/DashboardLayout';
+import toast from 'react-hot-toast';
+import axios from 'axios';
 
 export default function DonorDashboard({ donations = [], setDonations, requests = [], setRequests }) {
   const { user, updateUser } = useAuth();
@@ -86,12 +88,13 @@ export default function DonorDashboard({ donations = [], setDonations, requests 
     }, 500);
   };
 
-  const handleCreateDonation = (e) => {
+  const handleCreateDonation = async (e) => {
     e.preventDefault();
     if (!formData.title || !formData.quantity) return;
+    
+    const loadingToast = toast.loading('Publishing donation...');
 
-    const newDonation = {
-      id: Date.now(),
+    const newDonationData = {
       donor_id: user?.id || 1,
       donor_name: user?.name || 'Grand Hyatt Hotel',
       title: formData.title,
@@ -101,23 +104,30 @@ export default function DonorDashboard({ donations = [], setDonations, requests 
       expiry_hours: formData.expiryHours,
       location: formData.location,
       storage_type: formData.storageType,
-      status: 'Available',
       image_url: imagePreview || 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=500&auto=format&fit=crop&q=60'
     };
 
-    if (setDonations) setDonations([newDonation, ...donations]);
-    setShowModal(false);
-    setAiResult(null);
-    clearImage();
-    setFormData({
-      title: '',
-      category: 'Veg',
-      quantity: '',
-      preparedTime: '1 hour ago',
-      expiryHours: 4,
-      storageType: 'Room Temperature',
-      location: user?.address || 'Downtown Center, Block 4'
-    });
+    try {
+      const response = await axios.post('http://127.0.0.1:5000/api/donations', newDonationData);
+      
+      if (setDonations) setDonations([response.data.donation, ...donations]);
+      setShowModal(false);
+      setAiResult(null);
+      clearImage();
+      setFormData({
+        title: '',
+        category: 'Veg',
+        quantity: '',
+        preparedTime: '1 hour ago',
+        expiryHours: 4,
+        storageType: 'Room Temperature',
+        location: user?.address || 'Downtown Center, Block 4'
+      });
+      toast.success('Donation published successfully!', { id: loadingToast });
+    } catch (error) {
+      console.error('Error creating donation:', error);
+      toast.error('Failed to publish donation.', { id: loadingToast });
+    }
   };
 
   const myDonations = donations.filter(d => d.donor_name === user?.name || d.donor_id === user?.id);
@@ -362,8 +372,7 @@ export default function DonorDashboard({ donations = [], setDonations, requests 
               onSubmit={e => {
                 e.preventDefault();
                 updateUser({ name: profileForm.name.trim(), address: profileForm.address.trim() });
-                setProfileSaved(true);
-                setTimeout(() => setProfileSaved(false), 2500);
+                toast.success('Profile updated successfully!');
               }}
             >
               <div className="form-group">
@@ -391,11 +400,6 @@ export default function DonorDashboard({ donations = [], setDonations, requests 
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                 <button type="submit" className="btn-primary" style={{ alignSelf: 'flex-start' }}>Save Changes</button>
-                {profileSaved && (
-                  <span style={{ color: '#15803d', fontWeight: 700, fontSize: '0.88rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                    ✓ Profile updated successfully!
-                  </span>
-                )}
               </div>
             </form>
           </div>
