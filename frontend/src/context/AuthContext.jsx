@@ -32,6 +32,7 @@ export const AuthProvider = ({ children }) => {
     setToken(null);
     localStorage.removeItem('frs_user');
     localStorage.removeItem('frs_token');
+    localStorage.setItem('frs_activeTab', 'home');
   };
 
   const switchRole = (newRole) => {

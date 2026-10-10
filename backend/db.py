@@ -78,82 +78,9 @@ MOCK_USERS = [
     }
 ]
 
-MOCK_DONATIONS = [
-    {
-        "id": 101,
-        "donor_id": 1,
-        "donor_name": "Grand Hyatt Hotel",
-        "title": "Surplus Banquet Meals (Buffet)",
-        "category": "Veg",
-        "quantity": "45 Portions",
-        "prepared_time": "2 hours ago",
-        "expiry_hours": 3,
-        "location": "Downtown Center, Block 4",
-        "storage_type": "Refrigerated",
-        "status": "Available",
-        "image_url": "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=500&auto=format&fit=crop&q=60",
-        "created_at": "2026-08-10 12:00:00"
-    },
-    {
-        "id": 102,
-        "donor_id": 1,
-        "donor_name": "BakeHouse Cafe",
-        "title": "Fresh Artisan Bread & Pastries",
-        "category": "Veg",
-        "quantity": "25 kg",
-        "prepared_time": "1 hour ago",
-        "expiry_hours": 8,
-        "location": "Westside Market Street",
-        "storage_type": "Room Temperature",
-        "status": "Available",
-        "image_url": "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=500&auto=format&fit=crop&q=60",
-        "created_at": "2026-08-10 13:00:00"
-    },
-    {
-        "id": 103,
-        "donor_id": 2,
-        "donor_name": "TechPark Cafeteria",
-        "title": "Catered Packed Meals",
-        "category": "Non-Veg",
-        "quantity": "60 Boxes",
-        "prepared_time": "30 mins ago",
-        "expiry_hours": 4,
-        "location": "Innovation Hub, Building B",
-        "storage_type": "Hot Storage",
-        "status": "Claimed",
-        "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop&q=60",
-        "created_at": "2026-08-10 14:00:00"
-    }
-]
+MOCK_DONATIONS = []
 
-MOCK_REQUESTS = [
-    {
-        "id": 201,
-        "donation_id": 103,
-        "donation_title": "Catered Packed Meals",
-        "title": "Catered Packed Meals",
-        "ngo_id": 2,
-        "ngo_name": "Hope Shelter NGO",
-        "volunteer_id": 3,
-        "volunteer_name": "Alex Smith",
-        "status": "In Transit",
-        "otp_code": "5921",
-        "requested_at": "2026-08-10 14:30:00"
-    },
-    {
-        "id": 202,
-        "donation_id": 101,
-        "donation_title": "Surplus Banquet Meals (Buffet)",
-        "title": "Surplus Banquet Meals (Buffet)",
-        "ngo_id": 2,
-        "ngo_name": "Hope Shelter NGO",
-        "volunteer_id": None,
-        "volunteer_name": None,
-        "status": "Pending",
-        "otp_code": "8432",
-        "requested_at": "2026-08-10 15:10:00"
-    }
-]
+MOCK_REQUESTS = []
 
 MOCK_NOTIFICATIONS = [
     {

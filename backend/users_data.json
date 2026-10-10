@@ -51,24 +51,72 @@
     "id": 5,
     "name": "John",
     "email": "john@gamil.com",
-    "password": "234567",
+    "password": "123456",
     "role": "donor",
-    "phone": "+91 9876543210",
-    "address": "City Center",
+    "phone": "7984980454",
+    "address": "38 Navapara,Kosad Railway Station,Kosad Gam,Amaroli,Surat",
     "organization_type": "Restaurant",
     "is_verified": true,
-    "created_at": "2026-09-20 15:00:00"
+    "created_at": "2026-09-23 20:34:51"
   },
   {
     "id": 6,
-    "name": "John",
-    "email": "john@gmail.com",
-    "password": "234567",
-    "role": "donor",
-    "phone": "+91 9876543210",
-    "address": "City Center",
+    "name": "Suyanshi Patel",
+    "email": "suyanshipatel@gmail.com",
+    "password": "060906sp",
+    "role": "admin",
+    "phone": "+917984980454",
+    "address": "38 Navapara,Kosad Railway Station,Kosad Gam,Amaroli,Surat",
     "organization_type": "Restaurant",
     "is_verified": true,
-    "created_at": "2026-09-20 15:00:00"
+    "created_at": "2026-09-23 20:36:29"
+  },
+  {
+    "id": 7,
+    "name": "Alex",
+    "email": "alex@gmail.com",
+    "password": "234567",
+    "role": "ngo",
+    "phone": "1234567897",
+    "address": "38 Navapara,Kosad Railway Station,Kosad Gam,Amaroli,Surat",
+    "organization_type": "Restaurant",
+    "is_verified": true,
+    "created_at": "2026-10-04 16:48:34"
+  },
+  {
+    "id": 8,
+    "name": "Liza",
+    "email": "liza@gmail.com",
+    "password": "3456789",
+    "role": "volunteer",
+    "phone": "2345678912",
+    "address": "anfhk,1324",
+    "organization_type": "Restaurant",
+    "is_verified": true,
+    "created_at": "2026-10-04 16:55:14"
+  },
+  {
+    "id": 9,
+    "name": "Liza",
+    "email": "lisa@gamil.com",
+    "password": "123456",
+    "role": "volunteer",
+    "phone": "2345678912",
+    "address": "anfhk,1324",
+    "organization_type": "Restaurant",
+    "is_verified": true,
+    "created_at": "2026-10-10 15:27:33"
+  },
+  {
+    "id": 10,
+    "name": "Liza",
+    "email": "lisa@gmail.com",
+    "password": "1234567",
+    "role": "volunteer",
+    "phone": "3463356432",
+    "address": "38 Navapara,Kosad Railway Station,Kosad Gam,Amaroli,Surat",
+    "organization_type": "Restaurant",
+    "is_verified": true,
+    "created_at": "2026-10-10 15:29:44"
   }
 ]

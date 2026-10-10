@@ -21,12 +21,34 @@ import axios from 'axios';
 
 export default function DonorDashboard({ donations = [], setDonations, requests = [], setRequests }) {
   const { user, updateUser } = useAuth();
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState(() => {
+    const parts = window.location.hash.replace('#', '').split('/');
+    return (parts[0] === 'dashboard' && parts[1]) ? parts[1] : 'dashboard';
+  });
   const [searchQuery, setSearchQuery] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [aiPredicting, setAiPredicting] = useState(false);
   const [aiResult, setAiResult] = useState(null);
   const [profileSaved, setProfileSaved] = useState(false);
+
+  const handleSelectTab = (tabId) => {
+    if (tabId === activeTab) return;
+    setActiveTab(tabId);
+    window.history.pushState({ tab: 'dashboard', subTab: tabId }, '', `#dashboard/${tabId}`);
+  };
+
+  useEffect(() => {
+    const handlePop = (e) => {
+      if (e.state && e.state.subTab) {
+        setActiveTab(e.state.subTab);
+      } else {
+        const parts = window.location.hash.replace('#', '').split('/');
+        setActiveTab((parts[0] === 'dashboard' && parts[1]) ? parts[1] : 'dashboard');
+      }
+    };
+    window.addEventListener('popstate', handlePop);
+    return () => window.removeEventListener('popstate', handlePop);
+  }, []);
   const [imagePreview, setImagePreview] = useState(null);
   const imageInputRef = useRef(null);
 
@@ -130,18 +152,38 @@ export default function DonorDashboard({ donations = [], setDonations, requests 
     }
   };
 
-  const myDonations = donations.filter(d => d.donor_name === user?.name || d.donor_id === user?.id);
+  const myDonations = donations.filter(d => 
+    (user?.id && (d.donor_id === user.id || String(d.donor_id) === String(user.id))) ||
+    (user?.name && d.donor_name && d.donor_name.toLowerCase() === user.name.toLowerCase())
+  );
+
+  const myDonationIds = new Set(myDonations.map(d => d.id));
+  const myRequests = requests.filter(r => 
+    myDonationIds.has(r.donation_id) || 
+    (user?.id && (r.donor_id === user.id || String(r.donor_id) === String(user.id)))
+  );
+
+  const pendingRequestsCount = myRequests.filter(r => 
+    !r.status || r.status.toLowerCase() === 'pending' || r.status.toLowerCase() === 'requested'
+  ).length;
+
+  const mealsSharedCount = myDonations.reduce((sum, d) => {
+    const match = String(d.quantity || '').match(/\d+/);
+    return sum + (match ? parseInt(match[0], 10) : 0);
+  }, 0);
+
+  const connectedNgosCount = new Set(myRequests.map(r => r.ngo_name || r.ngo_id).filter(Boolean)).size;
   
   const filteredDonations = myDonations.filter(d => 
-    d.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    d.location.toLowerCase().includes(searchQuery.toLowerCase())
+    (d.title || '').toLowerCase().includes((searchQuery || '').toLowerCase()) ||
+    (d.location || '').toLowerCase().includes((searchQuery || '').toLowerCase())
   );
 
   return (
     <DashboardLayout 
       sidebarTabs={sidebarTabs}
       activeTab={activeTab}
-      setActiveTab={setActiveTab}
+      setActiveTab={handleSelectTab}
       searchQuery={searchQuery}
       setSearchQuery={setSearchQuery}
     >
@@ -190,7 +232,7 @@ export default function DonorDashboard({ donations = [], setDonations, requests 
                 <HeartHandshake size={24} />
               </div>
               <div>
-                <div className="stat-value">{requests.length}</div>
+                <div className="stat-value">{pendingRequestsCount}</div>
                 <div className="stat-label">Pending Requests</div>
               </div>
             </div>
@@ -199,7 +241,7 @@ export default function DonorDashboard({ donations = [], setDonations, requests 
                 <TrendingUp size={24} />
               </div>
               <div>
-                <div className="stat-value">3,850</div>
+                <div className="stat-value">{mealsSharedCount.toLocaleString()}</div>
                 <div className="stat-label">Meals Shared</div>
               </div>
             </div>
@@ -208,7 +250,7 @@ export default function DonorDashboard({ donations = [], setDonations, requests 
                 <MapPin size={24} />
               </div>
               <div>
-                <div className="stat-value">2</div>
+                <div className="stat-value">{connectedNgosCount}</div>
                 <div className="stat-label">Nearby NGOs</div>
               </div>
             </div>
@@ -225,7 +267,7 @@ export default function DonorDashboard({ donations = [], setDonations, requests 
               <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-dark)' }}>
                 My Active Donations ({filteredDonations.length})
               </h3>
-              <button className="btn-secondary" onClick={() => setActiveTab('donations')} style={{ padding: '0.4rem 0.85rem', fontSize: '0.8rem' }}>
+              <button className="btn-secondary" onClick={() => handleSelectTab('donations')} style={{ padding: '0.4rem 0.85rem', fontSize: '0.8rem' }}>
                 View All
               </button>
             </div>
@@ -325,32 +367,40 @@ export default function DonorDashboard({ donations = [], setDonations, requests 
       {activeTab === 'requests' && (
         <div style={{ background: 'white', padding: '2rem', borderRadius: '20px', border: '1px solid var(--border-subtle)', animation: 'fadeIn 0.3s ease-out' }}>
           <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-dark)', marginBottom: '1.5rem' }}>
-            NGO Claims & Volunteer Pickup Requests
+            NGO Claims & Volunteer Pickup Requests ({myRequests.length})
           </h2>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            {requests.map(req => (
-              <div key={req.id} style={{
-                padding: '1.25rem',
-                borderRadius: '16px',
-                border: '1px solid var(--border-subtle)',
-                background: '#F8FAFC',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center'
-              }}>
-                <div>
-                  <h4 style={{ fontWeight: 800, fontSize: '1.1rem', color: 'var(--text-dark)' }}>{req.title}</h4>
-                  <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)' }}>Requested by <strong>{req.ngo_name}</strong></p>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--primary-dark)', fontWeight: 700, marginTop: '0.3rem' }}>
-                    Verification OTP: <span style={{ letterSpacing: '0.1em', background: 'white', padding: '0.15rem 0.5rem', borderRadius: '6px', border: '1px solid #BBF7D0' }}>{req.otp_code}</span>
-                  </div>
-                </div>
-                <span style={{ padding: '0.4rem 0.85rem', borderRadius: '50px', background: '#FEF3C7', color: '#B45309', fontWeight: 800, fontSize: '0.8rem' }}>
-                  {req.status}
-                </span>
+            {myRequests.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--text-muted)' }}>
+                <HeartHandshake size={48} style={{ opacity: 0.3, marginBottom: '0.75rem', display: 'inline-block' }} />
+                <p style={{ fontWeight: 600, fontSize: '1.05rem', margin: 0 }}>No requests received yet</p>
+                <p style={{ fontSize: '0.85rem', marginTop: '0.35rem' }}>When an NGO requests food from your donations, it will appear here.</p>
               </div>
-            ))}
+            ) : (
+              myRequests.map(req => (
+                <div key={req.id} style={{
+                  padding: '1.25rem',
+                  borderRadius: '16px',
+                  border: '1px solid var(--border-subtle)',
+                  background: '#F8FAFC',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center'
+                }}>
+                  <div>
+                    <h4 style={{ fontWeight: 800, fontSize: '1.1rem', color: 'var(--text-dark)' }}>{req.title || req.donation_title}</h4>
+                    <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)' }}>Requested by <strong>{req.ngo_name}</strong></p>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--primary-dark)', fontWeight: 700, marginTop: '0.3rem' }}>
+                      Verification OTP: <span style={{ letterSpacing: '0.1em', background: 'white', padding: '0.15rem 0.5rem', borderRadius: '6px', border: '1px solid #BBF7D0' }}>{req.otp_code}</span>
+                    </div>
+                  </div>
+                  <span style={{ padding: '0.4rem 0.85rem', borderRadius: '50px', background: '#FEF3C7', color: '#B45309', fontWeight: 800, fontSize: '0.8rem' }}>
+                    {req.status}
+                  </span>
+                </div>
+              ))
+            )}
           </div>
         </div>
       )}
@@ -410,10 +460,18 @@ export default function DonorDashboard({ donations = [], setDonations, requests 
         <div style={{ background: 'white', padding: '2rem', borderRadius: '20px', border: '1px solid var(--border-subtle)', animation: 'fadeIn 0.3s ease-out' }}>
           <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-dark)', marginBottom: '1.5rem' }}>Notification Center</h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-            <div style={{ padding: '1rem', borderRadius: '12px', background: '#F0FDF4', borderLeft: '4px solid #22C55E' }}>
-              <strong style={{ display: 'block', fontSize: '0.95rem', color: 'var(--text-dark)' }}>Food Claim Accepted</strong>
-              <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Hope Shelter NGO accepted "Surplus Banquet Meals"</span>
-            </div>
+            {myRequests.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '2.5rem 1rem', color: 'var(--text-muted)' }}>
+                No notifications right now.
+              </div>
+            ) : (
+              myRequests.map(req => (
+                <div key={req.id} style={{ padding: '1rem', borderRadius: '12px', background: '#F0FDF4', borderLeft: '4px solid #22C55E' }}>
+                  <strong style={{ display: 'block', fontSize: '0.95rem', color: 'var(--text-dark)' }}>Food Claim Request</strong>
+                  <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{req.ngo_name} requested "{req.title || req.donation_title}"</span>
+                </div>
+              ))
+            )}
           </div>
         </div>
       )}

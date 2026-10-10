@@ -7,6 +7,7 @@ const navItems = [
   { label: 'About Us', id: 'about-section' },
   { label: 'How It Works', id: 'how-it-works-section' },
   { label: 'Features', id: 'features-section' },
+  { label: 'AI Predictor', tab: 'ai-predictor' },
   { label: 'Contact', id: 'contact-section' }
 ];
 
@@ -14,12 +15,16 @@ export default function Navbar({ activeTab, setActiveTab, onOpenAuth }) {
   const { user, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const goTo = (sectionId) => {
-    setActiveTab('home');
+  const goTo = (item) => {
     setMenuOpen(false);
+    if (item.tab) {
+      setActiveTab(item.tab);
+      return;
+    }
+    setActiveTab('home');
 
     window.requestAnimationFrame(() => {
-      const section = document.getElementById(sectionId);
+      const section = document.getElementById(item.id);
       if (section) {
         section.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
@@ -33,7 +38,7 @@ export default function Navbar({ activeTab, setActiveTab, onOpenAuth }) {
         {/* Brand Logo - Big & Bold */}
         <button
           type="button"
-          onClick={() => goTo('home-section')}
+          onClick={() => goTo({ id: 'home-section' })}
           className="inline-flex items-center gap-3.5 text-left focus:outline-none"
         >
           <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 text-white shadow-md shadow-emerald-500/30">
@@ -49,10 +54,14 @@ export default function Navbar({ activeTab, setActiveTab, onOpenAuth }) {
         <nav className="hidden items-center gap-2 lg:flex">
           {navItems.map((item) => (
             <button
-              key={item.id}
+              key={item.label}
               type="button"
-              onClick={() => goTo(item.id)}
-              className="rounded-full px-5 py-2.5 text-base font-extrabold text-slate-800 transition hover:bg-emerald-50 hover:text-emerald-700"
+              onClick={() => goTo(item)}
+              className={`rounded-full px-5 py-2.5 text-base font-extrabold transition ${
+                activeTab === item.tab 
+                  ? 'bg-emerald-600 text-white shadow-md' 
+                  : 'text-slate-800 hover:bg-emerald-50 hover:text-emerald-700'
+              }`}
             >
               {item.label}
             </button>

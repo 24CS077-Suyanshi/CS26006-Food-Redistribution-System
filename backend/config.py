@@ -13,3 +13,9 @@ class Config:
     DB_PASSWORD = os.getenv('DB_PASSWORD', '')
     DB_NAME = os.getenv('DB_NAME', 'food_redistribution_db')
 
+    # Email SMTP Configuration
+    SMTP_SERVER = os.getenv('SMTP_SERVER', 'smtp.gmail.com')
+    SMTP_PORT = int(os.getenv('SMTP_PORT', 465))
+    SMTP_EMAIL = os.getenv('SMTP_EMAIL', '')
+    SMTP_PASSWORD = os.getenv('SMTP_PASSWORD', '')
+

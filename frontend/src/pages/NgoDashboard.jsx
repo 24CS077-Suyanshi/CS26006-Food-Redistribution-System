@@ -16,11 +16,33 @@ import DashboardLayout from '../components/DashboardLayout';
 import toast from 'react-hot-toast';
 import axios from 'axios';
 
-export default function NGODashboard({ donations = [], requests = [], setRequests }) {
+export default function NGODashboard({ donations = [], setDonations, requests = [], setRequests }) {
   const { user, updateUser } = useAuth();
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState(() => {
+    const parts = window.location.hash.replace('#', '').split('/');
+    return (parts[0] === 'dashboard' && parts[1]) ? parts[1] : 'dashboard';
+  });
   const [searchQuery, setSearchQuery] = useState('');
   const [profileSaved, setProfileSaved] = useState(false);
+
+  const handleSelectTab = (tabId) => {
+    if (tabId === activeTab) return;
+    setActiveTab(tabId);
+    window.history.pushState({ tab: 'dashboard', subTab: tabId }, '', `#dashboard/${tabId}`);
+  };
+
+  useEffect(() => {
+    const handlePop = (e) => {
+      if (e.state && e.state.subTab) {
+        setActiveTab(e.state.subTab);
+      } else {
+        const parts = window.location.hash.replace('#', '').split('/');
+        setActiveTab((parts[0] === 'dashboard' && parts[1]) ? parts[1] : 'dashboard');
+      }
+    };
+    window.addEventListener('popstate', handlePop);
+    return () => window.removeEventListener('popstate', handlePop);
+  }, []);
 
   const sidebarTabs = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -41,11 +63,22 @@ export default function NGODashboard({ donations = [], requests = [], setRequest
   }, [user?.name, user?.address]);
 
   const availableDonations = donations.filter(d => d.status === 'Available');
-  const myClaims = requests.filter(r => r.ngo_name === user?.name);
+  const myClaims = requests.filter(r => 
+    (user?.id && (r.ngo_id === user.id || String(r.ngo_id) === String(user.id))) ||
+    (user?.name && r.ngo_name && r.ngo_name.toLowerCase() === user.name.toLowerCase())
+  );
+
+  const activeClaimsCount = myClaims.filter(r => r.status !== 'Completed' && r.status !== 'Delivered').length;
+  const completedPickupsCount = myClaims.filter(r => r.status === 'Completed' || r.status === 'Delivered').length;
+  const mealsReceivedCount = myClaims.reduce((sum, r) => {
+    const don = donations.find(d => d.id === r.donation_id);
+    const match = String(don?.quantity || r.quantity || '').match(/\d+/);
+    return sum + (match ? parseInt(match[0], 10) : 0);
+  }, 0);
 
   const filteredAvailable = availableDonations.filter(d => 
-    d.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    d.location.toLowerCase().includes(searchQuery.toLowerCase())
+    (d.title || '').toLowerCase().includes((searchQuery || '').toLowerCase()) ||
+    (d.location || '').toLowerCase().includes((searchQuery || '').toLowerCase())
   );
 
   const handleClaimFood = async (donationId, title) => {
@@ -58,13 +91,17 @@ export default function NGODashboard({ donations = [], requests = [], setRequest
       const response = await axios.post('http://127.0.0.1:5000/api/requests', {
         donation_id: donationId,
         ngo_name: user?.name || 'NGO User',
-        ngo_id: user?.id || 2
+        ngo_id: user?.id || 2,
+        ngo_email: user?.email || 'ngo@frs.org'
       });
       
       const newRequest = response.data.request;
       
       setRequests(prev => [newRequest, ...prev]);
-      toast.success(`Successfully submitted claim for ${title}. Wait for approval.`, { id: loadingToast });
+      if (setDonations) {
+        setDonations(prev => prev.map(d => d.id === donationId ? { ...d, status: 'Requested' } : d));
+      }
+      toast.success(`Claim submitted! Pickup OTP sent to ${user?.email || 'your email'}.`, { id: loadingToast });
     } catch (error) {
       console.error('Error claiming food:', error);
       toast.error(`Failed to claim ${title}. Please try again.`, { id: loadingToast });
@@ -75,7 +112,7 @@ export default function NGODashboard({ donations = [], requests = [], setRequest
     <DashboardLayout 
       sidebarTabs={sidebarTabs}
       activeTab={activeTab}
-      setActiveTab={setActiveTab}
+      setActiveTab={handleSelectTab}
       searchQuery={searchQuery}
       setSearchQuery={setSearchQuery}
     >
@@ -103,7 +140,7 @@ export default function NGODashboard({ donations = [], requests = [], setRequest
               </p>
             </div>
             <div style={{ display: 'flex', gap: '0.75rem' }}>
-              <button className="btn-primary" onClick={() => setActiveTab('available_food')} style={{ background: '#0EA5E9', border: 'none' }}>
+              <button className="btn-primary" onClick={() => handleSelectTab('available_food')} style={{ background: '#0EA5E9', border: 'none' }}>
                 <Search size={18} /> Find Food
               </button>
             </div>
@@ -124,7 +161,7 @@ export default function NGODashboard({ donations = [], requests = [], setRequest
                 <HeartHandshake size={24} />
               </div>
               <div>
-                <div className="stat-value">{myClaims.length}</div>
+                <div className="stat-value">{activeClaimsCount}</div>
                 <div className="stat-label">My Active Claims</div>
               </div>
             </div>
@@ -133,8 +170,17 @@ export default function NGODashboard({ donations = [], requests = [], setRequest
                 <CheckCircle2 size={24} />
               </div>
               <div>
-                <div className="stat-value">45</div>
+                <div className="stat-value">{completedPickupsCount}</div>
                 <div className="stat-label">Completed Pickups</div>
+              </div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-icon" style={{ background: '#F3E8FF', color: '#6D28D9' }}>
+                <Clock size={24} />
+              </div>
+              <div>
+                <div className="stat-value">{mealsReceivedCount.toLocaleString()}</div>
+                <div className="stat-label">Meals Received</div>
               </div>
             </div>
           </div>
@@ -150,7 +196,7 @@ export default function NGODashboard({ donations = [], requests = [], setRequest
               <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-dark)' }}>
                 Recently Added Food ({filteredAvailable.length})
               </h3>
-              <button className="btn-secondary" onClick={() => setActiveTab('available_food')} style={{ padding: '0.4rem 0.85rem', fontSize: '0.8rem' }}>
+              <button className="btn-secondary" onClick={() => handleSelectTab('available_food')} style={{ padding: '0.4rem 0.85rem', fontSize: '0.8rem' }}>
                 View All
               </button>
             </div>
@@ -267,12 +313,30 @@ export default function NGODashboard({ donations = [], requests = [], setRequest
               }}>
                 <div>
                   <h4 style={{ fontWeight: 800, fontSize: '1.1rem', color: 'var(--text-dark)' }}>{req.title}</h4>
-                  <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)' }}>Request ID: #{req.id}</p>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--primary-dark)', fontWeight: 700, marginTop: '0.3rem' }}>
+                  <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginTop: '0.2rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                    <span>Batch ID: <strong style={{ color: '#0F172A' }}>#{req.id}</strong></span>
+                    <span>•</span>
+                    <span>
+                      🚚 Volunteer: <strong style={{ color: req.volunteer_name ? '#059669' : '#D97706' }}>
+                        {req.volunteer_name || 'Assigning volunteer...'}
+                      </strong>
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--primary-dark)', fontWeight: 700, marginTop: '0.4rem' }}>
                     Share this OTP with Volunteer: <span style={{ letterSpacing: '0.1em', background: 'white', padding: '0.15rem 0.5rem', borderRadius: '6px', border: '1px solid #BBF7D0' }}>{req.otp_code}</span>
+                    <span style={{ display: 'block', fontSize: '0.75rem', color: '#64748B', marginTop: '0.25rem' }}>
+                      ✉️ Sent to email: <strong>{req.ngo_email || user?.email}</strong>
+                    </span>
                   </div>
                 </div>
-                <span style={{ padding: '0.4rem 0.85rem', borderRadius: '50px', background: '#FEF3C7', color: '#B45309', fontWeight: 800, fontSize: '0.8rem' }}>
+                <span style={{ 
+                  padding: '0.4rem 0.85rem', 
+                  borderRadius: '50px', 
+                  background: req.status === 'Delivered' ? '#DCFCE7' : req.status === 'In Transit' ? '#DBEAFE' : '#FEF3C7', 
+                  color: req.status === 'Delivered' ? '#15803D' : req.status === 'In Transit' ? '#1D4ED8' : '#B45309', 
+                  fontWeight: 800, 
+                  fontSize: '0.8rem' 
+                }}>
                   {req.status}
                 </span>
               </div>

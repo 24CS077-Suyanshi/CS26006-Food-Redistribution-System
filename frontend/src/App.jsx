@@ -4,6 +4,7 @@ import Navbar from './components/Navbar';
 import AuthPage from './pages/AuthPage';
 import HomePage from './pages/HomePage';
 import Dashboard from './pages/Dashboard';
+import AIPredictionPage from './pages/AIPredictionPage';
 import { Toaster } from 'react-hot-toast';
 import axios from 'axios';
 
@@ -56,15 +57,54 @@ const INITIAL_DONATIONS = [
 //when user login set the user in local storage
 function MainAppContent() {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState(() => sessionStorage.getItem('frs_activeTab') || 'home');
+  const [activeTab, setActiveTab] = useState(() => {
+    try {
+      const savedUser = localStorage.getItem('frs_user');
+      if (savedUser) {
+        return 'dashboard';
+      }
+      return 'home';
+    } catch (_) {
+      return 'home';
+    }
+  });
   const [authMode, setAuthMode] = useState(() => localStorage.getItem('frs_authMode') || 'login');
   const [authRole, setAuthRole] = useState(() => localStorage.getItem('frs_authRole') || 'donor');
 
   useEffect(() => {
-    sessionStorage.setItem('frs_activeTab', activeTab);
+    if (user) {
+      setActiveTab('dashboard');
+    }
+  }, [user]);
+
+  useEffect(() => {
+    localStorage.setItem('frs_activeTab', activeTab);
     localStorage.setItem('frs_authMode', authMode);
     localStorage.setItem('frs_authRole', authRole);
+    if (activeTab === 'dashboard') {
+      window.history.replaceState({ tab: 'dashboard' }, '', '#dashboard');
+    }
   }, [activeTab, authMode, authRole]);
+
+  // Sync with browser back/forward buttons (popstate)
+  useEffect(() => {
+    const handlePopState = (event) => {
+      if (event.state && event.state.tab) {
+        setActiveTab(event.state.tab);
+      } else {
+        const savedUser = localStorage.getItem('frs_user');
+        setActiveTab(savedUser ? 'dashboard' : 'home');
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  const changeTab = (newTab) => {
+    setActiveTab(newTab);
+    window.history.pushState({ tab: newTab }, '', `#${newTab}`);
+  };
 
   const [donations, setDonations] = useState([]);
   const [requests, setRequests] = useState([]);
@@ -90,7 +130,7 @@ function MainAppContent() {
   const handleOpenAuth = (mode = 'login', role = 'donor') => {
     setAuthMode(mode);//which mode it is login or signup
     setAuthRole(role);//which role it is donor or ngo or volunteer
-    setActiveTab('auth');//which tab it is home or auth or dashboard
+    changeTab('auth');//which tab it is home or auth or dashboard
   };
 
   //use of conditional rending
@@ -99,7 +139,7 @@ function MainAppContent() {
       <Toaster position="top-right" />
       <Navbar
         activeTab={activeTab}
-        setActiveTab={setActiveTab}
+        setActiveTab={changeTab}
         onOpenAuth={handleOpenAuth}
       />
 
@@ -112,7 +152,7 @@ function MainAppContent() {
               if (tab === 'login' || !user) {
                 handleOpenAuth('login');
               } else {
-                setActiveTab('dashboard');
+                changeTab('dashboard');
               }
             }}
             onOpenAuth={handleOpenAuth}
@@ -123,7 +163,7 @@ function MainAppContent() {
           <AuthPage
             initialMode={authMode}
             initialRole={authRole}
-            onLoginSuccess={() => setActiveTab('dashboard')}
+            onLoginSuccess={() => changeTab('dashboard')}
             onModeChange={setAuthMode}
           />
         )}
@@ -131,7 +171,7 @@ function MainAppContent() {
         {activeTab === 'dashboard' && !user && (
           <AuthPage
             initialMode="login"
-            onLoginSuccess={() => setActiveTab('dashboard')}
+            onLoginSuccess={() => changeTab('dashboard')}
             onModeChange={setAuthMode}
           />
         )}
@@ -143,6 +183,10 @@ function MainAppContent() {
             requests={requests}
             setRequests={setRequests}
           />
+        )}
+
+        {activeTab === 'ai-predictor' && (
+          <AIPredictionPage />
         )}
       </main>
     </div>
