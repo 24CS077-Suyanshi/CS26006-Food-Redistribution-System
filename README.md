@@ -158,17 +158,3 @@ npm run dev
 | **Volunteer** | `volunteer@frs.org` | `password123` | Accept pickups, enter OTP to complete delivery |
 | **Admin** | `admin@frs.org` | `password123` | System oversight, user verification, platform metrics |
 
----
-
-## 📊 Evaluation & GitHub Practices (CEUP301 Guidelines)
-
-This repository adheres strictly to CHARUSAT CEUP301 guidelines:
-- **Meaningful Commits:** Concise, standard Conventional Commits (`feat:`, `fix:`, `docs:`, `style:`, `refactor:`).
-- **Issue Tracking:** Issues created and closed for key deliverables and milestones.
-- **Continuous Progress:** Weekly incremental updates throughout Semester V.
-
----
-
-## 📜 License
-
-This project is developed as part of academic coursework for **Project-I CEUP301** at **Charotar University of Science and Technology (CHARUSAT)**. All rights reserved.
