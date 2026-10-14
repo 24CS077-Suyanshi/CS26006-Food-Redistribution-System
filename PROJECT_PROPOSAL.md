@@ -16,7 +16,7 @@
 | **Academic Year & Semester** | **2026 - 2027 \| Semester V (B.Tech CSE)** |
 | **Student Name** | **Suyanshi Patel** |
 | **Student ID / Roll No.** | **24CS077** |
-| **GitHub Repository** | [https://github.com/24CS077-Suyanshi/CS26006-Food-Redistribution-System](https://github.com/24CS077-Suyanshi/Food-Redistribution-System) |
+| **GitHub Repository** | [https://github.com/24CS077-Suyanshi/CS26006-Food-Redistribution-System](https://github.com/24CS077-Suyanshi/CS26006-Food-Redistribution-System) |
 | **Date of Submission** | **30th July, 2026** |
 
 ---
@@ -86,16 +86,16 @@ The application adopts an industry-standard **3-Tier Architecture**:
 
 ---
 
-## 6. Project Timeline & Milestones (16-Week Semester Plan)
+## 6. Project Timeline & Milestones (12-Week Semester Plan)
 
 | Phase | Duration | Planned Milestones |
 | :--- | :--- | :--- |
-| **Phase 1: Inception & Proposal** | Weeks 1 - 4 | Domain analysis, literature survey, proposal submission (July 30, 2026), GitHub repository setup. |
-| **Phase 2: System Design** | Weeks 5 - 6 | UML modeling, database schema, 3-tier architecture design. |
-| **Phase 3: Core Implementation** | Weeks 7 - 10 | Flask backend APIs, React UI, 4 user role dashboards, batch claiming lifecycle. |
-| **Phase 4: AI & Security** | Weeks 11 - 12 | AI Freshness predictor integration, secure dual OTP delivery handshake. |
-| **Phase 5: Testing & Polishing** | Weeks 13 - 14 | Integration testing, usability polish, performance optimization. |
-| **Phase 6: Evaluation & Viva** | Weeks 15 - 16 | Final documentation, presentation deck, viva defense. |
+| **Phase 1: Inception & Survey** | Weeks 1 - 2 | Domain analysis, literature survey, gap analysis of existing solutions. |
+| **Phase 2: Requirements & Design** | Weeks 3 - 4 | SRS preparation, proposal submission (July 30, 2026), 3-tier architecture, UML & flowchart design. |
+| **Phase 3: Backend & Database** | Weeks 5 - 6 | MySQL schema modeling, Flask REST APIs, authentication and role management. |
+| **Phase 4: Frontend Development** | Weeks 7 - 8 | React 18 + Vite SPA, responsive landing page, 4 role dashboards (Donor, NGO, Volunteer, Admin). |
+| **Phase 5: AI & Security Handshake** | Weeks 9 - 10 | AI Freshness & Shelf-Life Predictor, cryptographic dual OTP verification handshake. |
+| **Phase 6: Testing, Polish & Viva** | Weeks 11 - 12 | System integration testing, UI cleanup, CEUP301 GitHub documentation & final viva defense. |
 
 ---
 

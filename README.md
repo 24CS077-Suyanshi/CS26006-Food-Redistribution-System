@@ -20,7 +20,7 @@
 - **Student ID:** 24CS077
 - **Repository Name:** CS26006-Food-Redistribution-System
 - **Department:** Department of Computer Science & Engineering
-- **Institute:** Chandubhai S. Patel Institute of Technology (CSPIT) 
+- **Institute:** Chandubhai S. Patel Institute of Technology (CSPIT)
 - **University:** Charotar University of Science and Technology (CHARUSAT), Changa, Anand, Gujarat - 388421
 
 ---
@@ -33,7 +33,7 @@ As mandated by the Project-I CEUP301 curriculum, the detailed documentation file
 | :--- | :--- | :--- |
 | **Problem Statement** | Problem definition, background, target audience, and societal relevance | [📄 View PROBLEM_STATEMENT.md](PROBLEM_STATEMENT.md) |
 | **Literature Survey** | Review of existing solutions, research papers, and comparative gap analysis | [📄 View LITERATURE_SURVEY.md](LITERATURE_SURVEY.md) |
-| **Project Timeline** | Week 1 to Week 16 milestone breakdown and progress schedule | [📄 View PROJECT_TIMELINE.md](PROJECT_TIMELINE.md) |
+| **Project Timeline** | Week 1 to Week 12 milestone breakdown and progress schedule | [📄 View PROJECT_TIMELINE.md](PROJECT_TIMELINE.md) |
 | **Requirements Specification** | Functional (FRS), Non-Functional (NFRS), and Hardware/Software specs | [📄 View REQUIREMENTS.md](REQUIREMENTS.md) |
 | **Project Proposal** | Formal softcopy proposal formatted for mentor review & submission | [📄 View PROJECT_PROPOSAL.md](PROJECT_PROPOSAL.md) |
 
@@ -109,8 +109,8 @@ The platform follows a clean **3-Tier Architecture**:
 
 ### Step 1: Clone Repository
 ```bash
-git clone https://github.com/24CS077-Suyanshi/Food-Redistribution-System.git
-cd Food-Redistribution-System
+git clone https://github.com/24CS077-Suyanshi/CS26006-Food-Redistribution-System.git
+cd CS26006-Food-Redistribution-System
 ```
 
 ---
