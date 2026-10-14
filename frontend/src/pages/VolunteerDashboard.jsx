@@ -13,12 +13,16 @@ import {
   ShieldCheck,
   AlertCircle,
   X,
-  Lock
+  Lock,
+  Sparkles,
+  Workflow
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import DashboardLayout from '../components/DashboardLayout';
 import toast from 'react-hot-toast';
 import axios from 'axios';
+import AIPredictionPage from './AIPredictionPage';
+import HowItWorksTab from '../components/HowItWorksTab';
 
 export default function VolunteerDashboard({ requests = [], setRequests, donations = [], setDonations }) {
   const { user, updateUser } = useAuth();
@@ -59,6 +63,8 @@ export default function VolunteerDashboard({ requests = [], setRequests, donatio
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'available_tasks', label: 'Available Pickups', icon: Search },
     { id: 'my_tasks', label: 'My Tasks', icon: Truck },
+    { id: 'ai_predictor', label: 'AI Freshness Predictor', icon: Sparkles },
+    { id: 'how_it_works', label: 'How It Works', icon: Workflow },
     { id: 'profile', label: 'Profile', icon: User },
     { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'settings', label: 'Settings', icon: Settings }
@@ -414,6 +420,14 @@ export default function VolunteerDashboard({ requests = [], setRequests, donatio
             {myTasks.length === 0 && <p style={{ color: 'var(--text-muted)' }}>You don't have any active or completed tasks.</p>}
           </div>
         </div>
+      )}
+
+      {activeTab === 'ai_predictor' && (
+        <AIPredictionPage />
+      )}
+
+      {activeTab === 'how_it_works' && (
+        <HowItWorksTab userRole="volunteer" onNavigateTab={handleSelectTab} />
       )}
 
       {activeTab === 'profile' && (

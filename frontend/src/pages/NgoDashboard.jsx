@@ -10,12 +10,16 @@ import {
   MapPin, 
   CheckCircle2,
   Utensils,
-  Star
+  Star,
+  Sparkles,
+  Workflow
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import DashboardLayout from '../components/DashboardLayout';
 import toast from 'react-hot-toast';
 import axios from 'axios';
+import AIPredictionPage from './AIPredictionPage';
+import HowItWorksTab from '../components/HowItWorksTab';
 
 export default function NGODashboard({ donations = [], setDonations, requests = [], setRequests }) {
   const { user, updateUser } = useAuth();
@@ -50,6 +54,8 @@ export default function NGODashboard({ donations = [], setDonations, requests = 
     { id: 'available_food', label: 'Browse Food', icon: Search },
     { id: 'my_claims', label: 'My Claims', icon: HeartHandshake },
     { id: 'feedback', label: 'Feedback & Ratings', icon: Star },
+    { id: 'ai_predictor', label: 'AI Freshness Predictor', icon: Sparkles },
+    { id: 'how_it_works', label: 'How It Works', icon: Workflow },
     { id: 'profile', label: 'Profile', icon: User },
     { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'settings', label: 'Settings', icon: Settings }
@@ -563,6 +569,14 @@ export default function NGODashboard({ donations = [], setDonations, requests = 
             )}
           </div>
         </div>
+      )}
+
+      {activeTab === 'ai_predictor' && (
+        <AIPredictionPage />
+      )}
+
+      {activeTab === 'how_it_works' && (
+        <HowItWorksTab userRole="ngo" onNavigateTab={handleSelectTab} />
       )}
 
       {activeTab === 'profile' && (

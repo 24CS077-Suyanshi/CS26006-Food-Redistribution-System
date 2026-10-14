@@ -13,12 +13,15 @@ import {
   Sparkles,
   ImagePlus,
   X,
-  Star
+  Star,
+  Workflow
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import DashboardLayout from '../components/DashboardLayout';
 import toast from 'react-hot-toast';
 import axios from 'axios';
+import AIPredictionPage from './AIPredictionPage';
+import HowItWorksTab from '../components/HowItWorksTab';
 
 export default function DonorDashboard({ donations = [], setDonations, requests = [], setRequests }) {
   const { user, updateUser } = useAuth();
@@ -69,6 +72,8 @@ export default function DonorDashboard({ donations = [], setDonations, requests 
     { id: 'donations', label: 'My Donations', icon: Utensils },
     { id: 'requests', label: 'NGO Requests', icon: HeartHandshake },
     { id: 'feedback', label: 'Reviews & Ratings', icon: Star },
+    { id: 'ai_predictor', label: 'AI Freshness Predictor', icon: Sparkles },
+    { id: 'how_it_works', label: 'How It Works', icon: Workflow },
     { id: 'profile', label: 'Profile', icon: User },
     { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'settings', label: 'Settings', icon: Settings }
@@ -521,6 +526,14 @@ export default function DonorDashboard({ donations = [], setDonations, requests 
             )}
           </div>
         </div>
+      )}
+
+      {activeTab === 'ai_predictor' && (
+        <AIPredictionPage />
+      )}
+
+      {activeTab === 'how_it_works' && (
+        <HowItWorksTab userRole="donor" onNavigateTab={handleSelectTab} />
       )}
 
       {activeTab === 'profile' && (

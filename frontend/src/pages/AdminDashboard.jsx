@@ -28,12 +28,16 @@ import {
   FileText,
   Activity,
   Award,
-  Star
+  Star,
+  Sparkles,
+  Workflow
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import DashboardLayout from '../components/DashboardLayout';
 import toast from 'react-hot-toast';
 import axios from 'axios';
+import AIPredictionPage from './AIPredictionPage';
+import HowItWorksTab from '../components/HowItWorksTab';
 
 // Initial fallback users when offline
 const FALLBACK_USERS = [
@@ -249,6 +253,8 @@ export default function AdminDashboard({
     { id: 'donations', label: 'All Donations', icon: Utensils },
     { id: 'requests', label: 'Claims & Logistics', icon: Truck },
     { id: 'feedback', label: 'Platform Reviews', icon: Star },
+    { id: 'ai_predictor', label: 'AI Freshness Predictor', icon: Sparkles },
+    { id: 'how_it_works', label: 'How It Works', icon: Workflow },
     { id: 'reports', label: 'Impact Reports', icon: BarChart3 },
     { id: 'settings', label: 'System Settings', icon: Settings }
   ];
@@ -1726,6 +1732,14 @@ export default function AdminDashboard({
           </div>
 
         </div>
+      )}
+
+      {activeTab === 'ai_predictor' && (
+        <AIPredictionPage />
+      )}
+
+      {activeTab === 'how_it_works' && (
+        <HowItWorksTab userRole="admin" onNavigateTab={handleSelectTab} />
       )}
 
       {/* ======================================================== */}

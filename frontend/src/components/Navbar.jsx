@@ -7,7 +7,6 @@ const navItems = [
   { label: 'About Us', id: 'about-section' },
   { label: 'How It Works', id: 'how-it-works-section' },
   { label: 'Features', id: 'features-section' },
-  { label: 'AI Predictor', tab: 'ai-predictor' },
   { label: 'Contact', id: 'contact-section' }
 ];
 
@@ -50,35 +49,47 @@ export default function Navbar({ activeTab, setActiveTab, onOpenAuth }) {
           </span>
         </button>
 
-        {/* Desktop Nav Links - Extra Wide Spacing & Bold Large Text */}
-        <nav className="hidden items-center gap-2 lg:flex">
-          {navItems.map((item) => (
-            <button
-              key={item.label}
-              type="button"
-              onClick={() => goTo(item)}
-              className={`rounded-full px-5 py-2.5 text-base font-extrabold transition ${
-                activeTab === item.tab 
-                  ? 'bg-emerald-600 text-white shadow-md' 
-                  : 'text-slate-800 hover:bg-emerald-50 hover:text-emerald-700'
-              }`}
-            >
-              {item.label}
-            </button>
-          ))}
-        </nav>
+        {/* Desktop Nav Links - Hidden inside Dashboards, only visible on Home / Landing page */}
+        {activeTab !== 'dashboard' && (
+          <nav className="hidden items-center gap-2 lg:flex">
+            {navItems.map((item) => (
+              <button
+                key={item.label}
+                type="button"
+                onClick={() => goTo(item)}
+                className={`rounded-full px-5 py-2.5 text-base font-extrabold transition ${
+                  activeTab === item.tab 
+                    ? 'bg-emerald-600 text-white shadow-md' 
+                    : 'text-slate-800 hover:bg-emerald-50 hover:text-emerald-700'
+                }`}
+              >
+                {item.label}
+              </button>
+            ))}
+          </nav>
+        )}
 
         {/* Action Buttons - Large & Bold */}
         <div className="hidden items-center gap-4 lg:flex">
           {user ? (
             <>
-              <button
-                type="button"
-                onClick={() => setActiveTab('dashboard')}
-                className="inline-flex items-center gap-2 rounded-full border-2 border-emerald-500 bg-emerald-50 px-5 py-2.5 text-base font-black text-emerald-800 shadow-xs transition hover:bg-emerald-100 cursor-pointer"
-              >
-                <LayoutDashboard size={18} /> {user.role === 'admin' ? 'Admin Dashboard' : `${user.role.toUpperCase()} Dashboard`}
-              </button>
+              {activeTab === 'dashboard' ? (
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('home')}
+                  className="inline-flex items-center gap-2 rounded-full border-2 border-slate-300 bg-white px-5 py-2 text-sm font-black text-slate-700 shadow-xs transition hover:bg-slate-100 hover:text-slate-900 cursor-pointer"
+                >
+                  ← Back to Home
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('dashboard')}
+                  className="inline-flex items-center gap-2 rounded-full border-2 border-emerald-500 bg-emerald-50 px-5 py-2.5 text-base font-black text-emerald-800 shadow-xs transition hover:bg-emerald-100 cursor-pointer"
+                >
+                  <LayoutDashboard size={18} /> {user.role === 'admin' ? 'Admin Dashboard' : `${user.role.toUpperCase()} Dashboard`}
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => {
@@ -124,32 +135,47 @@ export default function Navbar({ activeTab, setActiveTab, onOpenAuth }) {
       {/* Mobile Drawer */}
       {menuOpen && (
         <div className="border-t border-slate-200 bg-white px-6 py-5 lg:hidden">
-          <div className="flex flex-col gap-2">
-            {navItems.map((item) => (
-              <button
-                key={item.label}
-                type="button"
-                onClick={() => goTo(item)}
-                className="rounded-xl px-4 py-3 text-left text-base font-extrabold text-slate-800 transition hover:bg-emerald-50 hover:text-emerald-700"
-              >
-                {item.label}
-              </button>
-            ))}
-          </div>
+          {activeTab !== 'dashboard' && (
+            <div className="flex flex-col gap-2">
+              {navItems.map((item) => (
+                <button
+                  key={item.label}
+                  type="button"
+                  onClick={() => goTo(item)}
+                  className="rounded-xl px-4 py-3 text-left text-base font-extrabold text-slate-800 transition hover:bg-emerald-50 hover:text-emerald-700"
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          )}
 
           <div className="mt-4 grid grid-cols-2 gap-3 border-t border-slate-100 pt-4">
             {user ? (
               <>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMenuOpen(false);
-                    setActiveTab('dashboard');
-                  }}
-                  className="rounded-xl border-2 border-emerald-500 bg-emerald-50 px-4 py-3 text-center text-sm font-black text-emerald-800"
-                >
-                  Dashboard ({user.role.toUpperCase()})
-                </button>
+                {activeTab === 'dashboard' ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      setActiveTab('home');
+                    }}
+                    className="rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-center text-sm font-black text-slate-800"
+                  >
+                    ← Back to Home
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      setActiveTab('dashboard');
+                    }}
+                    className="rounded-xl border-2 border-emerald-500 bg-emerald-50 px-4 py-3 text-center text-sm font-black text-emerald-800"
+                  >
+                    Dashboard ({user.role.toUpperCase()})
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={() => {
