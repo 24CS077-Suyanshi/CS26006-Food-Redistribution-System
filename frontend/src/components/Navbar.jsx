@@ -34,19 +34,19 @@ export default function Navbar({ activeTab, setActiveTab, onOpenAuth }) {
   return (
     <header className="sticky top-0 z-50 w-full border-b-2 border-emerald-100 bg-white/95 backdrop-blur-md shadow-sm">
       {/* 100% Full-Bleed Screen Width Container */}
-      <div className="flex w-full items-center justify-between px-6 py-4 md:px-12 lg:px-16">
-        {/* Brand Logo - Big & Bold */}
+      <div className="flex w-full items-center justify-between px-3 py-3 sm:px-6 md:px-12 lg:px-16">
+        {/* Brand Logo - Responsive */}
         <button
           type="button"
           onClick={() => goTo({ id: 'home-section' })}
-          className="inline-flex items-center gap-3.5 text-left focus:outline-none"
+          className="inline-flex items-center gap-2.5 sm:gap-3.5 text-left focus:outline-none"
         >
-          <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 text-white shadow-md shadow-emerald-500/30">
-            <Utensils size={24} />
+          <span className="inline-flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 text-white shadow-md shadow-emerald-500/30 flex-shrink-0">
+            <Utensils size={22} />
           </span>
-          <span className="flex flex-col">
-            <span className="text-2xl font-black tracking-tight text-slate-900 leading-none">Food Redistribution System</span>
-            <span className="mt-1 text-xs font-black uppercase tracking-wider text-emerald-600">Connecting Food With People</span>
+          <span className="flex flex-col min-w-0">
+            <span className="text-base sm:text-2xl font-black tracking-tight text-slate-900 leading-tight truncate">Food Redistribution System</span>
+            <span className="mt-0.5 text-[9px] sm:text-xs font-black uppercase tracking-wider text-emerald-600">Connecting Food With People</span>
           </span>
         </button>
 
@@ -127,9 +127,9 @@ export default function Navbar({ activeTab, setActiveTab, onOpenAuth }) {
           <div className="flex flex-col gap-2">
             {navItems.map((item) => (
               <button
-                key={item.id}
+                key={item.label}
                 type="button"
-                onClick={() => goTo(item.id)}
+                onClick={() => goTo(item)}
                 className="rounded-xl px-4 py-3 text-left text-base font-extrabold text-slate-800 transition hover:bg-emerald-50 hover:text-emerald-700"
               >
                 {item.label}

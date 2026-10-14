@@ -9,7 +9,8 @@ import {
   Clock, 
   MapPin, 
   CheckCircle2,
-  Utensils
+  Utensils,
+  Star
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import DashboardLayout from '../components/DashboardLayout';
@@ -48,6 +49,7 @@ export default function NGODashboard({ donations = [], setDonations, requests = 
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'available_food', label: 'Browse Food', icon: Search },
     { id: 'my_claims', label: 'My Claims', icon: HeartHandshake },
+    { id: 'feedback', label: 'Feedback & Ratings', icon: Star },
     { id: 'profile', label: 'Profile', icon: User },
     { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'settings', label: 'Settings', icon: Settings }
@@ -57,6 +59,73 @@ export default function NGODashboard({ donations = [], setDonations, requests = 
     name: user?.name || '',
     address: user?.address || ''
   });
+
+  // Feedback State
+  const [feedbackModal, setFeedbackModal] = useState(false);
+  const [feedbackClaim, setFeedbackClaim] = useState(null);
+  const [feedbackRating, setFeedbackRating] = useState(5);
+  const [feedbackComment, setFeedbackComment] = useState('');
+  const [submittedFeedbacks, setSubmittedFeedbacks] = useState({});
+  const [feedbackList, setFeedbackList] = useState([]);
+
+  useEffect(() => {
+    axios.get('http://127.0.0.1:5000/api/feedback')
+      .then(res => {
+        if (res.data && Array.isArray(res.data)) {
+          setFeedbackList(res.data);
+          const map = {};
+          res.data.forEach(item => {
+            if (item.donation_id) {
+              map[item.donation_id] = item;
+            }
+          });
+          setSubmittedFeedbacks(map);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const handleOpenFeedback = (claim) => {
+    setFeedbackClaim(claim);
+    setFeedbackRating(5);
+    setFeedbackComment('');
+    setFeedbackModal(true);
+  };
+
+  const handleSubmitFeedback = async (e) => {
+    e.preventDefault();
+    if (!feedbackClaim) return;
+
+    try {
+      const res = await axios.post('http://127.0.0.1:5000/api/feedback', {
+        donation_id: feedbackClaim.donation_id,
+        from_user_id: user?.id || 2,
+        user_name: user?.name || 'Hope Shelter NGO',
+        rating: feedbackRating,
+        comment: feedbackComment.trim() || 'Food was delivered in good condition.'
+      });
+
+      const newFb = res.data?.feedback || { 
+        donation_id: feedbackClaim.donation_id,
+        donation_title: feedbackClaim.title,
+        from_user_id: user?.id || 2,
+        from_user_name: user?.name || 'Hope Shelter NGO',
+        rating: feedbackRating, 
+        comment: feedbackComment.trim() || 'Food was delivered in good condition.',
+        created_at: new Date().toISOString()
+      };
+      setSubmittedFeedbacks(prev => ({
+        ...prev,
+        [feedbackClaim.donation_id]: newFb,
+        [feedbackClaim.id]: newFb
+      }));
+      setFeedbackList(prev => [newFb, ...prev.filter(f => f.donation_id !== feedbackClaim.donation_id)]);
+      toast.success('Thank you! Rating and feedback saved to database.');
+      setFeedbackModal(false);
+    } catch (err) {
+      toast.error('Failed to save feedback.');
+    }
+  };
 
   useEffect(() => {
     setProfileForm({ name: user?.name || '', address: user?.address || '' });
@@ -194,7 +263,7 @@ export default function NGODashboard({ donations = [], setDonations, requests = 
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
               <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-dark)' }}>
-                Recently Added Food ({filteredAvailable.length})
+                Recently Added Food
               </h3>
               <button className="btn-secondary" onClick={() => handleSelectTab('available_food')} style={{ padding: '0.4rem 0.85rem', fontSize: '0.8rem' }}>
                 View All
@@ -301,7 +370,9 @@ export default function NGODashboard({ donations = [], setDonations, requests = 
           </h2>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            {myClaims.map(req => (
+            {myClaims.map(req => {
+              const fb = submittedFeedbacks[req.donation_id] || submittedFeedbacks[req.id];
+              return (
               <div key={req.id} style={{
                 padding: '1.25rem',
                 borderRadius: '16px',
@@ -309,7 +380,9 @@ export default function NGODashboard({ donations = [], setDonations, requests = 
                 background: '#F8FAFC',
                 display: 'flex',
                 justifyContent: 'space-between',
-                alignItems: 'center'
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '1rem'
               }}>
                 <div>
                   <h4 style={{ fontWeight: 800, fontSize: '1.1rem', color: 'var(--text-dark)' }}>{req.title}</h4>
@@ -328,21 +401,165 @@ export default function NGODashboard({ donations = [], setDonations, requests = 
                       ✉️ Sent to email: <strong>{req.ngo_email || user?.email}</strong>
                     </span>
                   </div>
+                  {fb && (
+                    <div style={{ marginTop: '0.5rem', fontSize: '0.82rem', color: '#047857', display: 'flex', alignItems: 'center', gap: '0.35rem', fontWeight: 600 }}>
+                      <span style={{ background: '#ECFDF5', border: '1px solid #A7F3D0', padding: '0.15rem 0.5rem', borderRadius: '6px' }}>
+                        ⭐ Rated {fb.rating || fb}/5 Stars
+                      </span>
+                      {fb.comment && <span style={{ color: '#64748B', fontWeight: 400 }}>— "{fb.comment}"</span>}
+                    </div>
+                  )}
                 </div>
-                <span style={{ 
-                  padding: '0.4rem 0.85rem', 
-                  borderRadius: '50px', 
-                  background: req.status === 'Delivered' ? '#DCFCE7' : req.status === 'In Transit' ? '#DBEAFE' : '#FEF3C7', 
-                  color: req.status === 'Delivered' ? '#15803D' : req.status === 'In Transit' ? '#1D4ED8' : '#B45309', 
-                  fontWeight: 800, 
-                  fontSize: '0.8rem' 
-                }}>
-                  {req.status}
-                </span>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.5rem' }}>
+                  <span style={{ 
+                    padding: '0.4rem 0.85rem', 
+                    borderRadius: '50px', 
+                    background: req.status === 'Delivered' ? '#DCFCE7' : req.status === 'In Transit' ? '#DBEAFE' : '#FEF3C7', 
+                    color: req.status === 'Delivered' ? '#15803D' : req.status === 'In Transit' ? '#1D4ED8' : '#B45309', 
+                    fontWeight: 800, 
+                    fontSize: '0.8rem' 
+                  }}>
+                    {req.status}
+                  </span>
+                  {(req.status === 'Delivered' || req.status === 'Completed') && (
+                    <button
+                      onClick={() => handleOpenFeedback(req)}
+                      className="btn-primary"
+                      style={{ padding: '0.35rem 0.85rem', fontSize: '0.78rem', background: fb ? '#059669' : '#F59E0B', borderColor: fb ? '#059669' : '#F59E0B' }}
+                    >
+                      ⭐ {fb ? 'Edit Rating' : 'Rate Delivery'}
+                    </button>
+                  )}
+                </div>
               </div>
-            ))}
+            );})}
             {myClaims.length === 0 && (
               <p style={{ color: 'var(--text-muted)' }}>You haven't made any claims yet.</p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'feedback' && (
+        <div style={{ background: 'white', padding: '2rem', borderRadius: '20px', border: '1px solid var(--border-subtle)', animation: 'fadeIn 0.3s ease-out' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+            <div>
+              <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-dark)', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                <Star size={24} color="#F59E0B" fill="#F59E0B" />
+                Feedback & Ratings
+              </h2>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '0.3rem' }}>
+                Rate your received food batches and share comments with donors to help maintain food safety and trust.
+              </p>
+            </div>
+            <div style={{ display: 'flex', gap: '1rem' }}>
+              <div style={{ background: '#FEF3C7', border: '1px solid #FDE68A', padding: '0.6rem 1rem', borderRadius: '12px', textAlign: 'center' }}>
+                <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#B45309' }}>
+                  {Object.keys(submittedFeedbacks).length}
+                </div>
+                <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#78350F' }}>Feedbacks Given</div>
+              </div>
+              <div style={{ background: '#ECFDF5', border: '1px solid #A7F3D0', padding: '0.6rem 1rem', borderRadius: '12px', textAlign: 'center' }}>
+                <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#047857' }}>
+                  {completedPickupsCount}
+                </div>
+                <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#065F46' }}>Deliveries Completed</div>
+              </div>
+            </div>
+          </div>
+
+          <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '1rem' }}>
+            Your Claimed Batches & Reviews
+          </h3>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {myClaims.map(req => {
+              const fb = submittedFeedbacks[req.donation_id] || submittedFeedbacks[req.id];
+              const isFinished = req.status === 'Delivered' || req.status === 'Completed';
+              return (
+                <div key={req.id} style={{
+                  padding: '1.25rem',
+                  borderRadius: '16px',
+                  border: '1px solid var(--border-subtle)',
+                  background: '#F8FAFC',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: '1rem'
+                }}>
+                  <div>
+                    <h4 style={{ fontWeight: 800, fontSize: '1.05rem', color: 'var(--text-dark)' }}>{req.title}</h4>
+                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginTop: '0.25rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                      <span>Batch ID: <strong style={{ color: '#0F172A' }}>#{req.id}</strong></span>
+                      <span>•</span>
+                      <span>Status: <strong style={{ color: req.status === 'Delivered' ? '#15803D' : '#D97706' }}>{req.status}</strong></span>
+                    </div>
+
+                    {fb ? (
+                      <div style={{ marginTop: '0.6rem', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+                          {[1, 2, 3, 4, 5].map(star => (
+                            <Star 
+                              key={star} 
+                              size={15} 
+                              fill={star <= (fb.rating || fb) ? '#F59E0B' : '#CBD5E1'} 
+                              color={star <= (fb.rating || fb) ? '#F59E0B' : '#CBD5E1'} 
+                            />
+                          ))}
+                        </div>
+                        <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#047857' }}>
+                          Rated {fb.rating || fb}/5 Stars
+                        </span>
+                        {fb.comment && (
+                          <span style={{ fontSize: '0.85rem', color: '#64748B', fontStyle: 'italic' }}>
+                            — "{fb.comment}"
+                          </span>
+                        )}
+                      </div>
+                    ) : (
+                      <div style={{ marginTop: '0.4rem', fontSize: '0.82rem', color: '#64748B' }}>
+                        {isFinished 
+                          ? '✨ Food delivery is completed! Please rate your experience.' 
+                          : '⏳ Rating will be available once the delivery is marked Delivered.'}
+                      </div>
+                    )}
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    {isFinished ? (
+                      <button
+                        onClick={() => handleOpenFeedback(req)}
+                        className="btn-primary"
+                        style={{
+                          padding: '0.45rem 1rem',
+                          fontSize: '0.85rem',
+                          background: fb ? '#059669' : '#F59E0B',
+                          borderColor: fb ? '#059669' : '#F59E0B',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.4rem'
+                        }}
+                      >
+                        <Star size={16} fill="white" />
+                        {fb ? 'Edit Review' : 'Rate Delivery'}
+                      </button>
+                    ) : (
+                      <span style={{ fontSize: '0.8rem', color: '#94A3B8', fontWeight: 600 }}>
+                        In progress ({req.status})
+                      </span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+
+            {myClaims.length === 0 && (
+              <div style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--text-muted)' }}>
+                <Star size={42} color="#CBD5E1" style={{ margin: '0 auto 0.75rem auto', display: 'block' }} />
+                <h4 style={{ fontWeight: 700, color: 'var(--text-dark)', marginBottom: '0.3rem' }}>No claimed food batches yet</h4>
+                <p style={{ fontSize: '0.88rem' }}>Claim food from the "Browse Food" tab first. Once delivered, you can submit feedback & ratings here!</p>
+              </div>
             )}
           </div>
         </div>
@@ -417,6 +634,107 @@ export default function NGODashboard({ donations = [], setDonations, requests = 
         <div style={{ background: 'white', padding: '2rem', borderRadius: '20px', border: '1px solid var(--border-subtle)', animation: 'fadeIn 0.3s ease-out' }}>
           <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-dark)', marginBottom: '1.5rem' }}>Account Settings</h2>
           <p style={{ color: 'var(--text-muted)' }}>Configure email preferences.</p>
+        </div>
+      )}
+
+      {/* Interactive Feedback & Rating Modal */}
+      {feedbackModal && feedbackClaim && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(15, 23, 42, 0.65)',
+          backdropFilter: 'blur(4px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: '1rem'
+        }}>
+          <div style={{
+            background: 'white',
+            borderRadius: '20px',
+            width: '100%',
+            maxWidth: '480px',
+            padding: '2rem',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+            border: '1px solid #E2E8F0',
+            animation: 'fadeIn 0.2s ease-out'
+          }}>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0F172A', marginBottom: '0.5rem' }}>
+              ⭐ Rate Food & Delivery
+            </h3>
+            <p style={{ fontSize: '0.88rem', color: '#64748B', marginBottom: '1.25rem' }}>
+              How was the delivery for <strong>{feedbackClaim.title}</strong>? Your rating and comments will be saved directly into the database.
+            </p>
+
+            <form onSubmit={handleSubmitFeedback}>
+              <div style={{ marginBottom: '1.25rem' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: '#334155', marginBottom: '0.5rem' }}>
+                  Rating (1 to 5 Stars)
+                </label>
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  {[1, 2, 3, 4, 5].map(star => (
+                    <button
+                      type="button"
+                      key={star}
+                      onClick={() => setFeedbackRating(star)}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: '0.25rem',
+                        transform: star <= feedbackRating ? 'scale(1.15)' : 'scale(1)',
+                        transition: 'transform 0.15s ease'
+                      }}
+                    >
+                      <Star
+                        size={32}
+                        fill={star <= feedbackRating ? '#F59E0B' : 'none'}
+                        color={star <= feedbackRating ? '#F59E0B' : '#CBD5E1'}
+                      />
+                    </button>
+                  ))}
+                  <span style={{ marginLeft: '0.5rem', fontWeight: 800, color: '#D97706', fontSize: '1.05rem' }}>
+                    {feedbackRating} / 5
+                  </span>
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '1.5rem' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: '#334155', marginBottom: '0.5rem' }}>
+                  Feedback / Comments
+                </label>
+                <textarea
+                  className="form-input"
+                  rows={3}
+                  placeholder="e.g. Food was fresh and packaged very neatly. It helped feed 40 people!"
+                  value={feedbackComment}
+                  onChange={e => setFeedbackComment(e.target.value)}
+                  style={{ resize: 'vertical' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={() => setFeedbackModal(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="btn-primary"
+                  style={{ background: '#059669', borderColor: '#059669' }}
+                >
+                  Submit Rating
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </DashboardLayout>

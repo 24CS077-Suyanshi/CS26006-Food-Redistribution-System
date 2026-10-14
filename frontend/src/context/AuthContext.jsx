@@ -3,36 +3,35 @@ import React, { createContext, useState, useEffect, useContext } from 'react';
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(() => {
-    try {
-      const savedUser = localStorage.getItem('frs_user');
-      return savedUser ? JSON.parse(savedUser) : null;
-    } catch (_) {
-      return null;
-    }
-  });
+  // Always start with no user logged in when the app is run/opened
+  const [user, setUser] = useState(null);
+  const [token, setToken] = useState(null);
 
-  const [token, setToken] = useState(() => localStorage.getItem('frs_token') || null);
+  // Clear any previously saved session from localStorage on initial load
+  useEffect(() => {
+    try {
+      localStorage.removeItem('frs_user');
+      localStorage.removeItem('frs_token');
+    } catch (_) {}
+  }, []);
 
   const login = (userData, userToken) => {
     setUser(userData);
     setToken(userToken);
-    localStorage.setItem('frs_user', JSON.stringify(userData));
-    localStorage.setItem('frs_token', userToken);
   };
 
   const updateUser = (fields) => {
     const updatedUser = { ...user, ...fields };
     setUser(updatedUser);
-    localStorage.setItem('frs_user', JSON.stringify(updatedUser));
   };
 
   const logout = () => {
     setUser(null);
     setToken(null);
-    localStorage.removeItem('frs_user');
-    localStorage.removeItem('frs_token');
-    localStorage.setItem('frs_activeTab', 'home');
+    try {
+      localStorage.removeItem('frs_user');
+      localStorage.removeItem('frs_token');
+    } catch (_) {}
   };
 
   const switchRole = (newRole) => {
@@ -48,7 +47,6 @@ export const AuthProvider = ({ children }) => {
       name: "Demo User"
     };
     setUser(updatedUser);
-    localStorage.setItem('frs_user', JSON.stringify(updatedUser));
   };
 
   return (

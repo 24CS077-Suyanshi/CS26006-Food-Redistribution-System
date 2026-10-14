@@ -118,5 +118,17 @@
     "organization_type": "Restaurant",
     "is_verified": true,
     "created_at": "2026-10-10 15:29:44"
+  },
+  {
+    "id": 11,
+    "name": "Smit",
+    "email": "ngo@gmail.com",
+    "password": "password123",
+    "role": "ngo",
+    "phone": "1234567896",
+    "address": "38 Navapara,Kosad Railway Station,Kosad Gam,Amaroli,Surat",
+    "organization_type": "Restaurant",
+    "is_verified": true,
+    "created_at": "2026-10-14 11:19:34"
   }
 ]

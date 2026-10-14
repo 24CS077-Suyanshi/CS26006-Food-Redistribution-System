@@ -160,5 +160,6 @@ def get_db_connection():
         if connection.is_connected():
             return connection
     except Error as e:
+        print("[MySQL Error]:", e)
         pass
     return None

@@ -709,14 +709,15 @@ strong {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.55);
+  background: rgba(15, 23, 42, 0.6);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
-  z-index: 300;
+  z-index: 999;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 1.5rem;
+  overflow-y: auto;
 }
 
 .modal-card {
@@ -724,19 +725,24 @@ strong {
   border-radius: var(--radius-xl);
   max-width: 760px;
   width: 100%;
-  box-shadow: none;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   overflow: hidden;
   animation: modalIn 0.3s ease-out;
   border: 2px solid var(--border-subtle);
+  margin: auto;
 }
 
 .modal-header {
-  padding: 1.75rem 2.5rem;
+  padding: 1.5rem 2rem;
   border-bottom: 2px solid var(--border-subtle);
   display: flex;
   justify-content: space-between;
   align-items: center;
   background: #F8FAFC;
+  flex-shrink: 0;
 }
 
 .modal-title {
@@ -768,10 +774,28 @@ strong {
 }
 
 .modal-body {
-  padding: 2.5rem;
+  padding: 2rem 2.25rem;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1.25rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* Custom styled smooth scrollbar for modals */
+.modal-body::-webkit-scrollbar {
+  width: 8px;
+}
+.modal-body::-webkit-scrollbar-track {
+  background: #F1F5F9;
+  border-radius: 8px;
+}
+.modal-body::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 8px;
+}
+.modal-body::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
 }
 
 /* Full Width CTA Banner */
@@ -3216,4 +3240,243 @@ strong {
   flex-direction: column;
   gap: 0.2rem;
 }
+
+/* ========================================================= */
+/* UNIVERSAL MOBILE & RESPONSIVE DASHBOARD SYSTEM            */
+/* ========================================================= */
+
+html, body, #root, .app-container {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+.dashboard-container {
+  width: 100%;
+  max-width: 100%;
+  padding: 1.5rem 2rem;
+  box-sizing: border-box;
+}
+
+@media (max-width: 1024px) {
+  .dashboard-container {
+    padding: 1rem 0.75rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .dashboard-container {
+    padding: 0.75rem 0.5rem;
+  }
+}
+
+.dashboard-grid-layout {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 1.75rem;
+  min-height: 82vh;
+  width: 100%;
+}
+
+@media (max-width: 1024px) {
+  .dashboard-grid-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    width: 100%;
+  }
+}
+
+/* Sidebar Responsive */
+.dashboard-sidebar-desktop {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background: white;
+  border-radius: 20px;
+  border: 1px solid var(--border-subtle);
+  padding: 1.5rem 1rem;
+  box-shadow: var(--shadow-card);
+  height: fit-content;
+  position: sticky;
+  top: 90px;
+}
+
+@media (max-width: 1024px) {
+  .dashboard-sidebar-desktop {
+    display: none !important;
+  }
+}
+
+/* Mobile Sidebar Bar (< 1024px) */
+.dashboard-mobile-nav {
+  display: none;
+  background: white;
+  border-radius: 18px;
+  border: 1px solid var(--border-subtle);
+  padding: 0.85rem 1rem;
+  box-shadow: var(--shadow-sm);
+  width: 100%;
+}
+
+@media (max-width: 1024px) {
+  .dashboard-mobile-nav {
+    display: block !important;
+  }
+}
+
+.dashboard-mobile-tabs-scroll {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 0.35rem;
+  scrollbar-width: thin;
+}
+
+.dashboard-mobile-tabs-scroll::-webkit-scrollbar {
+  height: 4px;
+}
+.dashboard-mobile-tabs-scroll::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 4px;
+}
+
+.dashboard-mobile-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.95rem;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  white-space: nowrap;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+/* Main content area */
+.dashboard-main-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+  min-width: 0;
+  width: 100%;
+}
+
+.dashboard-content-area {
+  width: 100%;
+  min-width: 0;
+}
+
+/* Topbar Responsive */
+.dashboard-topbar {
+  background: white;
+  border-radius: 20px;
+  border: 1px solid var(--border-subtle);
+  padding: 0.9rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: var(--shadow-sm);
+  flex-wrap: wrap;
+  gap: 1rem;
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .dashboard-topbar {
+    padding: 0.75rem 1rem;
+    gap: 0.75rem;
+  }
+}
+
+.dashboard-search-wrapper {
+  position: relative;
+  flex: 1;
+  min-width: 200px;
+  max-width: 420px;
+}
+
+@media (max-width: 640px) {
+  .dashboard-search-wrapper {
+    min-width: 100%;
+    order: 2;
+  }
+}
+
+.dashboard-topbar-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+  .dashboard-topbar-controls {
+    width: 100%;
+    justify-content: space-between;
+    order: 1;
+  }
+}
+
+/* Responsive Grids */
+.dashboard-two-col-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.75rem;
+  width: 100%;
+}
+
+@media (max-width: 900px) {
+  .dashboard-two-col-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1.25rem !important;
+  }
+}
+
+.dashboard-analytics-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1.75rem;
+  width: 100%;
+}
+
+@media (max-width: 1024px) {
+  .dashboard-analytics-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1.25rem !important;
+  }
+}
+
+/* AI Grid mobile fix */
+@media (max-width: 900px) {
+  .ai-main-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Stat card mobile scaling */
+@media (max-width: 640px) {
+  .stat-card {
+    padding: 0.85rem 1rem !important;
+    gap: 0.65rem !important;
+  }
+  .stat-icon {
+    width: 42px !important;
+    height: 42px !important;
+  }
+  .stat-value {
+    font-size: 1.35rem !important;
+  }
+}
+
+/* Global table responsive wrapper */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 

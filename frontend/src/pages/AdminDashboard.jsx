@@ -27,7 +27,8 @@ import {
   AlertTriangle,
   FileText,
   Activity,
-  Award
+  Award,
+  Star
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import DashboardLayout from '../components/DashboardLayout';
@@ -118,8 +119,30 @@ export default function AdminDashboard({
   setRequests 
 }) {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState(() => {
+    const parts = window.location.hash.replace('#', '').split('/');
+    return (parts[0] === 'dashboard' && parts[1]) ? parts[1] : 'dashboard';
+  });
   const [searchQuery, setSearchQuery] = useState('');
+
+  const handleSelectTab = (tabId) => {
+    if (tabId === activeTab) return;
+    setActiveTab(tabId);
+    window.history.pushState({ tab: 'dashboard', subTab: tabId }, '', `#dashboard/${tabId}`);
+  };
+
+  useEffect(() => {
+    const handlePop = (e) => {
+      if (e.state && e.state.subTab) {
+        setActiveTab(e.state.subTab);
+      } else {
+        const parts = window.location.hash.replace('#', '').split('/');
+        setActiveTab((parts[0] === 'dashboard' && parts[1]) ? parts[1] : 'dashboard');
+      }
+    };
+    window.addEventListener('popstate', handlePop);
+    return () => window.removeEventListener('popstate', handlePop);
+  }, []);
 
   // Admin Data State
   const [users, setUsers] = useState(FALLBACK_USERS);
@@ -150,19 +173,22 @@ export default function AdminDashboard({
 
   const [broadcastMessage, setBroadcastMessage] = useState('');
   const [broadcastActive, setBroadcastActive] = useState(false);
+  const [feedbacks, setFeedbacks] = useState([]);
 
   // Fetch Users & Activities from Backend on mount
   useEffect(() => {
     const fetchAdminData = async () => {
       try {
-        const [usersRes, actRes, setRes] = await Promise.all([
+        const [usersRes, actRes, setRes, fbRes] = await Promise.all([
           axios.get('http://127.0.0.1:5000/api/admin/users').catch(() => null),
           axios.get('http://127.0.0.1:5000/api/admin/activities').catch(() => null),
-          axios.get('http://127.0.0.1:5000/api/admin/settings').catch(() => null)
+          axios.get('http://127.0.0.1:5000/api/admin/settings').catch(() => null),
+          axios.get('http://127.0.0.1:5000/api/feedback').catch(() => null)
         ]);
 
         if (usersRes && usersRes.data) setUsers(usersRes.data);
         if (actRes && actRes.data) setActivities(actRes.data);
+        if (fbRes && fbRes.data) setFeedbacks(fbRes.data);
         if (setRes && setRes.data) {
           setBroadcastMessage(setRes.data.emergency_broadcast || '');
           setBroadcastActive(setRes.data.broadcast_active || false);
@@ -219,12 +245,22 @@ export default function AdminDashboard({
   // Sidebar Configuration
   const sidebarTabs = [
     { id: 'dashboard', label: 'System Overview', icon: LayoutDashboard },
-    { id: 'users', label: `Manage Users (${users.length})`, icon: Users },
-    { id: 'donations', label: `All Donations (${donations.length})`, icon: Utensils },
-    { id: 'requests', label: `Claims & Logistics (${requests.length})`, icon: Truck },
+    { id: 'users', label: 'Manage Users', icon: Users },
+    { id: 'donations', label: 'All Donations', icon: Utensils },
+    { id: 'requests', label: 'Claims & Logistics', icon: Truck },
+    { id: 'feedback', label: 'Platform Reviews', icon: Star },
     { id: 'reports', label: 'Impact Reports', icon: BarChart3 },
     { id: 'settings', label: 'System Settings', icon: Settings }
   ];
+
+  const handleDeleteFeedback = async (id) => {
+    if (!window.confirm("Are you sure you want to remove this feedback from the platform?")) return;
+    try {
+      await axios.delete(`http://127.0.0.1:5000/api/feedback/${id}`);
+    } catch (_) {}
+    setFeedbacks(prev => prev.filter(f => f.id !== id));
+    toast.success("Feedback review removed.");
+  };
 
   // User Actions
   const handleToggleVerifyUser = async (userId) => {
@@ -411,7 +447,7 @@ export default function AdminDashboard({
     <DashboardLayout 
       sidebarTabs={sidebarTabs}
       activeTab={activeTab}
-      setActiveTab={setActiveTab}
+      setActiveTab={handleSelectTab}
       searchQuery={searchQuery}
       setSearchQuery={setSearchQuery}
     >
@@ -558,7 +594,7 @@ export default function AdminDashboard({
           </div>
 
           {/* Analytics & System Health Row */}
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.75rem' }}>
+          <div className="dashboard-analytics-grid">
             
             {/* Visual Distribution Widgets */}
             <div style={{
@@ -689,7 +725,7 @@ export default function AdminDashboard({
                   onClick={() => setActiveTab('users')}
                   style={{ width: '100%', justifyContent: 'center', background: '#1E293B', border: 'none' }}
                 >
-                  Review Pending Users ({stats.pendingVerificationCount})
+                  Review Pending Users
                 </button>
               </div>
             </div>
@@ -789,12 +825,12 @@ export default function AdminDashboard({
           {/* Role Filter Tabs */}
           <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
             {[
-              { id: 'all', label: `All Users (${users.length})` },
-              { id: 'donor', label: `Donors (${stats.donorsCount})` },
-              { id: 'ngo', label: `NGOs (${stats.ngosCount})` },
-              { id: 'volunteer', label: `Volunteers (${stats.volunteersCount})` },
+              { id: 'all', label: 'All Users' },
+              { id: 'donor', label: 'Donors' },
+              { id: 'ngo', label: 'NGOs' },
+              { id: 'volunteer', label: 'Volunteers' },
               { id: 'admin', label: 'Admins' },
-              { id: 'unverified', label: `Pending Verification (${stats.pendingVerificationCount})` }
+              { id: 'unverified', label: 'Pending Verification' }
             ].map(tab => (
               <button
                 key={tab.id}
@@ -1343,6 +1379,77 @@ export default function AdminDashboard({
             </table>
           </div>
 
+          {/* Community Ratings & NGO Reviews */}
+          <div style={{ marginTop: '2.5rem', border: '1px solid #E2E8F0', borderRadius: '16px', overflow: 'hidden' }}>
+            <div style={{ background: '#F8FAFC', padding: '1rem 1.5rem', borderBottom: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <span style={{ fontWeight: 800, fontSize: '0.95rem', color: '#0F172A' }}>
+                  ⭐ Verified Recipient Reviews & Quality Ratings
+                </span>
+                <span style={{ fontSize: '0.8rem', color: '#64748B', display: 'block' }}>
+                  Direct audit feedback submitted by NGOs upon food arrival
+                </span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', background: '#FEF3C7', padding: '0.35rem 0.8rem', borderRadius: '10px', border: '1px solid #FDE68A' }}>
+                <Star size={16} fill="#F59E0B" color="#F59E0B" />
+                <span style={{ fontWeight: 800, color: '#92400E', fontSize: '0.85rem' }}>
+                  {feedbacks.length > 0 ? (feedbacks.reduce((acc, f) => acc + (f.rating || 5), 0) / feedbacks.length).toFixed(1) : '5.0'} / 5.0
+                </span>
+              </div>
+            </div>
+
+            <div style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+              {feedbacks.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '2rem', color: '#64748B' }}>
+                  No feedback records found in database.
+                </div>
+              ) : (
+                feedbacks.map(fb => (
+                  <div key={fb.id} style={{
+                    padding: '1rem 1.25rem',
+                    borderRadius: '12px',
+                    border: '1px solid #F1F5F9',
+                    background: '#FAFAFA',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'flex-start',
+                    gap: '1rem',
+                    flexWrap: 'wrap'
+                  }}>
+                    <div style={{ flex: 1, minWidth: '220px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                        <span style={{ fontWeight: 700, fontSize: '0.92rem', color: '#0F172A' }}>
+                          {fb.user_name || 'Verified Recipient'}
+                        </span>
+                        <span style={{ fontSize: '0.72rem', background: '#E2E8F0', padding: '0.1rem 0.45rem', borderRadius: '4px', color: '#475569' }}>
+                          Batch #{fb.donation_id}
+                        </span>
+                      </div>
+                      <p style={{ fontSize: '0.86rem', color: '#475569', margin: '0.2rem 0' }}>
+                        "{fb.comment}"
+                      </p>
+                      <span style={{ fontSize: '0.72rem', color: '#94A3B8' }}>{fb.created_at || 'Recorded'}</span>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', background: '#FFFBEB', padding: '0.3rem 0.6rem', borderRadius: '8px', border: '1px solid #FDE68A' }}>
+                      {[...Array(5)].map((_, i) => (
+                        <Star
+                          key={i}
+                          size={13}
+                          fill={i < fb.rating ? '#F59E0B' : 'none'}
+                          color={i < fb.rating ? '#F59E0B' : '#CBD5E1'}
+                        />
+                      ))}
+                      <span style={{ fontWeight: 800, color: '#B45309', marginLeft: '0.25rem', fontSize: '0.8rem' }}>
+                        {fb.rating}.0
+                      </span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
         </div>
       )}
 
@@ -1356,7 +1463,7 @@ export default function AdminDashboard({
             System Settings & Platform Parameters
           </h2>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+          <div className="dashboard-two-col-grid">
             
             {/* Emergency Broadcast Card */}
             <div style={{ padding: '1.5rem', borderRadius: '18px', border: '1px solid #E2E8F0', background: '#F8FAFC' }}>
@@ -1463,6 +1570,165 @@ export default function AdminDashboard({
       )}
 
       {/* ======================================================== */}
+      {/* TAB: PLATFORM REVIEWS & FEEDBACK OVERSIGHT */}
+      {/* ======================================================== */}
+      {activeTab === 'feedback' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', animation: 'fadeIn 0.3s ease-out' }}>
+          
+          {/* Header Card */}
+          <div style={{
+            background: 'white',
+            padding: '2rem',
+            borderRadius: '20px',
+            border: '1px solid var(--border-subtle)',
+            boxShadow: 'var(--shadow-card)',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '1.5rem'
+          }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.35rem' }}>
+                <span style={{ fontSize: '0.75rem', background: '#FEF3C7', color: '#B45309', padding: '0.2rem 0.6rem', borderRadius: '50px', fontWeight: 800 }}>
+                  QUALITY & SATISFACTION
+                </span>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Real-time Delivery Feedback</span>
+              </div>
+              <h2 style={{ fontSize: '1.75rem', fontWeight: 900, color: 'var(--text-dark)' }}>
+                Platform Ratings & Reviews Oversight
+              </h2>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '0.2rem' }}>
+                Monitor feedback submitted by recipient shelters and NGOs on food quality, volunteer delivery, and donor freshness.
+              </p>
+            </div>
+
+            {/* Quick Metrics */}
+            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+              <div style={{ background: '#FFFBEB', border: '1px solid #FDE68A', padding: '0.85rem 1.4rem', borderRadius: '16px', textAlign: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem' }}>
+                  <Star size={20} fill="#F59E0B" color="#F59E0B" />
+                  <span style={{ fontSize: '1.5rem', fontWeight: 900, color: '#92400E' }}>
+                    {feedbacks.length > 0 ? (feedbacks.reduce((acc, f) => acc + (f.rating || 5), 0) / feedbacks.length).toFixed(1) : '5.0'}
+                  </span>
+                </div>
+                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#B45309', marginTop: '0.2rem' }}>Average Rating</div>
+              </div>
+
+              <div style={{ background: '#F8FAFC', border: '1px solid var(--border-subtle)', padding: '0.85rem 1.4rem', borderRadius: '16px', textAlign: 'center' }}>
+                <div style={{ fontSize: '1.5rem', fontWeight: 900, color: 'var(--text-dark)' }}>
+                  {feedbacks.length}
+                </div>
+                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', marginTop: '0.2rem' }}>Total Reviews</div>
+              </div>
+
+              <div style={{ background: '#ECFDF5', border: '1px solid #A7F3D0', padding: '0.85rem 1.4rem', borderRadius: '16px', textAlign: 'center' }}>
+                <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#047857' }}>
+                  {feedbacks.filter(f => f.rating >= 4).length}
+                </div>
+                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#065F46', marginTop: '0.2rem' }}>Positive (4-5★)</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Reviews List */}
+          <div style={{
+            background: 'white',
+            borderRadius: '20px',
+            border: '1px solid var(--border-subtle)',
+            padding: '1.75rem',
+            boxShadow: 'var(--shadow-card)'
+          }}>
+            <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-dark)', marginBottom: '1.25rem' }}>
+              All Feedback Submissions ({feedbacks.length})
+            </h3>
+
+            {feedbacks.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '3.5rem', color: 'var(--text-muted)' }}>
+                <Star size={44} color="#CBD5E1" style={{ margin: '0 auto 0.75rem auto', display: 'block' }} />
+                <h4 style={{ fontWeight: 700, color: 'var(--text-dark)' }}>No Reviews Yet</h4>
+                <p style={{ fontSize: '0.88rem' }}>When NGOs rate and review food deliveries, their feedback will appear here in real time.</p>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {feedbacks.map(fb => (
+                  <div key={fb.id} style={{
+                    padding: '1.25rem 1.5rem',
+                    borderRadius: '16px',
+                    border: '1px solid var(--border-subtle)',
+                    background: '#F8FAFC',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'flex-start',
+                    flexWrap: 'wrap',
+                    gap: '1rem'
+                  }}>
+                    <div style={{ flex: 1, minWidth: '260px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.4rem', flexWrap: 'wrap' }}>
+                        <span style={{ fontWeight: 800, fontSize: '1.05rem', color: 'var(--text-dark)' }}>
+                          {fb.user_name || 'NGO Recipient'}
+                        </span>
+                        <span style={{ fontSize: '0.75rem', background: '#E0F2FE', color: '#0369A1', padding: '0.2rem 0.55rem', borderRadius: '6px', fontWeight: 700 }}>
+                          Batch #{fb.donation_id}
+                        </span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.15rem' }}>
+                          {[1, 2, 3, 4, 5].map(star => (
+                            <Star 
+                              key={star} 
+                              size={15} 
+                              fill={star <= (fb.rating || 5) ? '#F59E0B' : '#E2E8F0'} 
+                              color={star <= (fb.rating || 5) ? '#F59E0B' : '#E2E8F0'} 
+                            />
+                          ))}
+                          <span style={{ fontSize: '0.82rem', fontWeight: 800, color: '#B45309', marginLeft: '0.3rem' }}>
+                            {fb.rating || 5}/5
+                          </span>
+                        </div>
+                      </div>
+
+                      {fb.donation_title && (
+                        <div style={{ fontSize: '0.88rem', color: '#059669', fontWeight: 600, marginBottom: '0.35rem' }}>
+                          🍲 Donation Item: <strong>{fb.donation_title}</strong>
+                        </div>
+                      )}
+
+                      <p style={{ fontSize: '0.92rem', color: '#334155', lineHeight: 1.5, margin: '0.3rem 0' }}>
+                        "{fb.comment}"
+                      </p>
+
+                      <span style={{ fontSize: '0.75rem', color: '#94A3B8' }}>
+                        Submitted: {fb.created_at || 'Recently'}
+                      </span>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <button
+                        onClick={() => handleDeleteFeedback(fb.id)}
+                        className="btn-secondary"
+                        style={{
+                          padding: '0.45rem 0.85rem',
+                          fontSize: '0.8rem',
+                          color: '#DC2626',
+                          borderColor: '#FECACA',
+                          background: '#FEF2F2',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.3rem'
+                        }}
+                      >
+                        <Trash2 size={14} /> Remove
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+        </div>
+      )}
+
+      {/* ======================================================== */}
       {/* MODAL: ADD NEW USER */}
       {/* ======================================================== */}
       {showAddUserModal && (
@@ -1522,7 +1788,7 @@ export default function AdminDashboard({
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div className="dashboard-two-col-grid" style={{ gap: '1rem' }}>
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Role</label>
                   <select
@@ -1749,7 +2015,7 @@ export default function AdminDashboard({
               Donated by <strong>{selectedDonation.donor_name}</strong> • {selectedDonation.location}
             </p>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', background: '#F8FAFC', padding: '1rem', borderRadius: '14px', marginBottom: '1.5rem' }}>
+            <div className="dashboard-two-col-grid" style={{ gap: '1rem', background: '#F8FAFC', padding: '1rem', borderRadius: '14px', marginBottom: '1.5rem' }}>
               <div>
                 <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700 }}>Quantity</span>
                 <div style={{ fontWeight: 800, color: 'var(--text-dark)' }}>{selectedDonation.quantity}</div>

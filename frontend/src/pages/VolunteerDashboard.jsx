@@ -73,12 +73,56 @@ export default function VolunteerDashboard({ requests = [], setRequests, donatio
     setProfileForm({ name: user?.name || '', address: user?.address || '' });
   }, [user?.name, user?.address]);
 
-  // Tasks available to volunteers: 'Pending' or unassigned
-  const availableTasks = requests.filter(r => r.status === 'Pending');
+  // Re-fetch fresh requests and donations when volunteer dashboard loads
+  useEffect(() => {
+    const refreshData = async () => {
+      try {
+        const [reqRes, donRes] = await Promise.all([
+          axios.get('http://127.0.0.1:5000/api/requests'),
+          axios.get('http://127.0.0.1:5000/api/donations')
+        ]);
+        if (setRequests && Array.isArray(reqRes.data)) setRequests(reqRes.data);
+        if (setDonations && Array.isArray(donRes.data)) setDonations(donRes.data);
+      } catch (err) {
+        console.error('Error refreshing volunteer data:', err);
+      }
+    };
+    refreshData();
+  }, []);
+
+  // 1. Pending NGO delivery requests
+  const pendingRequests = requests.filter(r => 
+    (!r.volunteer_id || r.volunteer_id === null || String(r.volunteer_id).trim() === '') &&
+    (
+      String(r.status || '').toLowerCase() === 'pending' || 
+      String(r.status || '').toLowerCase() === 'requested' || 
+      String(r.status || '').toLowerCase() === 'approved' ||
+      String(r.status || '').toLowerCase() === 'available'
+    )
+  );
+
+  // 2. Also map any available food donations so volunteer can pick them up directly
+  const claimedDonationIds = new Set(requests.map(r => String(r.donation_id)));
+  const unclaimedDonations = (donations || [])
+    .filter(d => (d.status === 'Available' || String(d.status).toLowerCase() === 'available') && !claimedDonationIds.has(String(d.id)))
+    .map(d => ({
+      id: `don_${d.id}`,
+      donation_id: d.id,
+      title: d.title,
+      donation_title: d.title,
+      quantity: d.quantity,
+      location: d.location,
+      ngo_name: 'Hope Shelter NGO',
+      status: 'Pending',
+      is_direct_donation: true
+    }));
+
+  const availableTasks = [...pendingRequests, ...unclaimedDonations];
+
   const myTasks = requests.filter(r => 
     r.status === 'In Transit' || 
     r.status === 'Delivered' || 
-    (r.volunteer_id && (r.volunteer_id === user?.id || String(r.volunteer_id) === String(user?.id)))
+    (r.volunteer_id && (String(r.volunteer_id) === String(user?.id) || r.volunteer_name === user?.name))
   );
 
   const filteredTasks = availableTasks.filter(t => 
@@ -90,7 +134,19 @@ export default function VolunteerDashboard({ requests = [], setRequests, donatio
   const handleAcceptTask = async (id) => {
     const loadingToast = toast.loading('Accepting delivery task...');
     try {
-      const response = await axios.put(`http://127.0.0.1:5000/api/requests/${id}/accept`, {
+      let taskId = id;
+      if (String(id).startsWith('don_')) {
+        const donationId = Number(String(id).replace('don_', ''));
+        const createRes = await axios.post('http://127.0.0.1:5000/api/requests', {
+          donation_id: donationId,
+          ngo_name: 'Hope Shelter NGO',
+          ngo_id: 2,
+          ngo_email: 'ngo@frs.org'
+        });
+        taskId = createRes.data?.request?.id || donationId;
+      }
+
+      const response = await axios.put(`http://127.0.0.1:5000/api/requests/${taskId}/accept`, {
         volunteer_id: user?.id || 3,
         volunteer_name: user?.name || 'Alex Smith'
       });
@@ -98,11 +154,14 @@ export default function VolunteerDashboard({ requests = [], setRequests, donatio
       const updatedReq = response.data.request;
 
       if (setRequests) {
-        setRequests(prev => prev.map(req => req.id === id ? { ...req, ...updatedReq, status: 'In Transit' } : req));
+        setRequests(prev => [
+          updatedReq,
+          ...prev.filter(req => String(req.id) !== String(id) && String(req.id) !== String(taskId))
+        ]);
       }
 
-      if (setDonations) {
-        setDonations(prev => prev.map(d => d.id === updatedReq.donation_id ? { ...d, status: 'Picked Up' } : d));
+      if (setDonations && updatedReq?.donation_id) {
+        setDonations(prev => prev.map(d => String(d.id) === String(updatedReq.donation_id) ? { ...d, status: 'Picked Up' } : d));
       }
 
       toast.success('Task accepted! Proceed to pickup location.', { id: loadingToast });
@@ -111,7 +170,7 @@ export default function VolunteerDashboard({ requests = [], setRequests, donatio
       console.error('Error accepting task:', error);
       // Local fallback if server unreachable
       if (setRequests) {
-        setRequests(prev => prev.map(req => req.id === id ? { ...req, status: 'In Transit', volunteer_name: user?.name || 'Volunteer' } : req));
+        setRequests(prev => prev.map(req => String(req.id) === String(id) ? { ...req, status: 'In Transit', volunteer_name: user?.name || 'Volunteer' } : req));
       }
       toast.success('Task accepted (Local Mode)!', { id: loadingToast });
       handleSelectTab('my_tasks');
@@ -146,11 +205,11 @@ export default function VolunteerDashboard({ requests = [], setRequests, donatio
       const updatedReq = response.data.request;
 
       if (setRequests) {
-        setRequests(prev => prev.map(req => req.id === selectedTask.id ? { ...req, ...updatedReq, status: 'Delivered' } : req));
+        setRequests(prev => prev.map(req => String(req.id) === String(selectedTask.id) ? { ...req, ...updatedReq, status: 'Delivered' } : req));
       }
 
       if (setDonations && response.data.donation_id) {
-        setDonations(prev => prev.map(d => d.id === response.data.donation_id ? { ...d, status: 'Delivered' } : d));
+        setDonations(prev => prev.map(d => String(d.id) === String(response.data.donation_id) ? { ...d, status: 'Delivered' } : d));
       }
 
       toast.success('🎉 Handshake Verified! Food marked as Delivered.', { id: loadingToast });
@@ -244,7 +303,7 @@ export default function VolunteerDashboard({ requests = [], setRequests, donatio
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
               <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-dark)' }}>
-                New Pickup Requests ({filteredTasks.length})
+                New Pickup Requests
               </h3>
               <button className="btn-secondary" onClick={() => handleSelectTab('available_tasks')} style={{ padding: '0.4rem 0.85rem', fontSize: '0.8rem' }}>
                 View All
@@ -522,18 +581,21 @@ export default function VolunteerDashboard({ requests = [], setRequests, donatio
               background: '#EFF6FF',
               border: '1px solid #BFDBFE',
               borderRadius: '12px',
-              padding: '0.75rem 1rem',
-              marginBottom: '1.5rem',
-              fontSize: '0.82rem',
+              padding: '0.85rem 1rem',
+              marginBottom: '1.25rem',
+              fontSize: '0.84rem',
               color: '#1E40AF',
               display: 'flex',
               alignItems: 'center',
-              gap: '0.6rem'
+              gap: '0.75rem'
             }}>
-              <ShieldCheck size={20} style={{ flexShrink: 0 }} />
-              <span>
-                Ask recipient NGO for the <strong>4-digit secure OTP</strong> to verify completion.
-              </span>
+              <ShieldCheck size={22} style={{ flexShrink: 0, color: '#2563EB' }} />
+              <div>
+                <span>Please ask the recipient NGO for their <strong>4-digit secure handover OTP</strong> to verify physical delivery.</span>
+                <span style={{ display: 'block', marginTop: '0.25rem', color: '#64748B', fontSize: '0.78rem' }}>
+                  (The recipient NGO receives this private code on their dashboard & email).
+                </span>
+              </div>
             </div>
 
             {/* OTP Input Form */}

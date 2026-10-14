@@ -12,7 +12,8 @@ import {
   TrendingUp, 
   Sparkles,
   ImagePlus,
-  X
+  X,
+  Star
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import DashboardLayout from '../components/DashboardLayout';
@@ -30,6 +31,17 @@ export default function DonorDashboard({ donations = [], setDonations, requests 
   const [aiPredicting, setAiPredicting] = useState(false);
   const [aiResult, setAiResult] = useState(null);
   const [profileSaved, setProfileSaved] = useState(false);
+  const [feedbacks, setFeedbacks] = useState([]);
+
+  useEffect(() => {
+    axios.get('http://127.0.0.1:5000/api/feedback')
+      .then(res => {
+        if (res.data && Array.isArray(res.data)) {
+          setFeedbacks(res.data);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const handleSelectTab = (tabId) => {
     if (tabId === activeTab) return;
@@ -56,6 +68,7 @@ export default function DonorDashboard({ donations = [], setDonations, requests 
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'donations', label: 'My Donations', icon: Utensils },
     { id: 'requests', label: 'NGO Requests', icon: HeartHandshake },
+    { id: 'feedback', label: 'Reviews & Ratings', icon: Star },
     { id: 'profile', label: 'Profile', icon: User },
     { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'settings', label: 'Settings', icon: Settings }
@@ -93,9 +106,22 @@ export default function DonorDashboard({ donations = [], setDonations, requests 
     location: user?.address || 'Downtown Center, Block 4'
   });
 
-  const handleRunAiPrediction = () => {
+  const handleRunAiPrediction = async () => {
     setAiPredicting(true);
-    setTimeout(() => {
+    try {
+      const res = await axios.post('http://127.0.0.1:5000/api/ai/predict-freshness', {
+        food_type: formData.title || formData.category,
+        storage_type: formData.storageType,
+        prepared_hours_ago: 1.0
+      });
+      const hours = res.data?.predicted_safe_hours || 4;
+      setAiResult({
+        hours: hours,
+        confidence: `${res.data?.confidence_score || 96}%`,
+        recommendation: `Recommended shelf-life: Safe for next ${hours} hours under ${formData.storageType}.`
+      });
+      setFormData(prev => ({ ...prev, expiryHours: hours }));
+    } catch (_) {
       let hours = 4;
       if (formData.storageType === 'Refrigerated') hours += 4;
       if (formData.category === 'Non-Veg') hours -= 1;
@@ -106,8 +132,9 @@ export default function DonorDashboard({ donations = [], setDonations, requests 
         recommendation: `Recommended shelf-life: Safe for next ${hours} hours under ${formData.storageType}.`
       });
       setFormData(prev => ({ ...prev, expiryHours: hours }));
+    } finally {
       setAiPredicting(false);
-    }, 500);
+    }
   };
 
   const handleCreateDonation = async (e) => {
@@ -265,7 +292,7 @@ export default function DonorDashboard({ donations = [], setDonations, requests 
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
               <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-dark)' }}>
-                My Active Donations ({filteredDonations.length})
+                My Active Donations
               </h3>
               <button className="btn-secondary" onClick={() => handleSelectTab('donations')} style={{ padding: '0.4rem 0.85rem', fontSize: '0.8rem' }}>
                 View All
@@ -352,6 +379,21 @@ export default function DonorDashboard({ donations = [], setDonations, requests 
                       <div className="detail-val">{item.storage_type}</div>
                     </div>
                   </div>
+                  {feedbacks.find(f => f.donation_id === item.id) && (() => {
+                    const fb = feedbacks.find(f => f.donation_id === item.id);
+                    return (
+                      <div style={{ marginTop: '0.75rem', padding: '0.5rem 0.75rem', background: '#FEF3C7', borderRadius: '10px', border: '1px solid #FDE68A' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: '#B45309', fontWeight: 800, fontSize: '0.8rem' }}>
+                          <Star size={14} fill="#F59E0B" color="#F59E0B" /> {fb.rating}/5 from {fb.user_name || 'NGO'}
+                        </div>
+                        {fb.comment && (
+                          <div style={{ fontSize: '0.76rem', color: '#78350F', marginTop: '0.2rem', fontStyle: 'italic' }}>
+                            "{fb.comment}"
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
             ))}
@@ -367,7 +409,7 @@ export default function DonorDashboard({ donations = [], setDonations, requests 
       {activeTab === 'requests' && (
         <div style={{ background: 'white', padding: '2rem', borderRadius: '20px', border: '1px solid var(--border-subtle)', animation: 'fadeIn 0.3s ease-out' }}>
           <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-dark)', marginBottom: '1.5rem' }}>
-            NGO Claims & Volunteer Pickup Requests ({myRequests.length})
+            NGO Claims & Volunteer Pickup Requests
           </h2>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -398,6 +440,82 @@ export default function DonorDashboard({ donations = [], setDonations, requests 
                   <span style={{ padding: '0.4rem 0.85rem', borderRadius: '50px', background: '#FEF3C7', color: '#B45309', fontWeight: 800, fontSize: '0.8rem' }}>
                     {req.status}
                   </span>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'feedback' && (
+        <div style={{ background: 'white', padding: '2rem', borderRadius: '20px', border: '1px solid var(--border-subtle)', animation: 'fadeIn 0.3s ease-out' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+            <div>
+              <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-dark)' }}>NGO Reviews & Delivery Ratings</h2>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', marginTop: '0.2rem' }}>Feedback received from recipient shelters and NGOs on your food donations</p>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#FEF3C7', padding: '0.5rem 1rem', borderRadius: '12px', border: '1px solid #FDE68A' }}>
+              <Star size={20} fill="#F59E0B" color="#F59E0B" />
+              <span style={{ fontWeight: 800, color: '#92400E' }}>
+                {feedbacks.length > 0 ? (feedbacks.reduce((acc, f) => acc + (f.rating || 5), 0) / feedbacks.length).toFixed(1) : '5.0'} / 5.0
+              </span>
+              <span style={{ fontSize: '0.8rem', color: '#B45309' }}>Average Rating</span>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {feedbacks.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
+                No feedback received yet. Once an NGO receives a delivery, their ratings and reviews will appear here.
+              </div>
+            ) : (
+              feedbacks.map(fb => (
+                <div key={fb.id} style={{
+                  padding: '1.25rem',
+                  borderRadius: '16px',
+                  border: '1px solid var(--border-subtle)',
+                  background: '#F8FAFC',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'flex-start',
+                  flexWrap: 'wrap',
+                  gap: '1rem'
+                }}>
+                  <div style={{ flex: 1, minWidth: '240px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
+                      <span style={{ fontWeight: 800, fontSize: '1.05rem', color: '#0F172A' }}>
+                        {fb.user_name || 'NGO Recipient'}
+                      </span>
+                      <span style={{ fontSize: '0.75rem', background: '#E2E8F0', padding: '0.15rem 0.5rem', borderRadius: '6px', color: '#475569' }}>
+                        Batch #{fb.donation_id}
+                      </span>
+                    </div>
+                    {fb.donation_title && (
+                      <div style={{ fontSize: '0.85rem', color: '#059669', fontWeight: 600, marginBottom: '0.35rem' }}>
+                        🍲 {fb.donation_title}
+                      </div>
+                    )}
+                    <p style={{ fontSize: '0.9rem', color: '#334155', lineHeight: 1.5, margin: 0 }}>
+                      "{fb.comment}"
+                    </p>
+                    <span style={{ fontSize: '0.75rem', color: '#94A3B8', marginTop: '0.5rem', display: 'block' }}>
+                      {fb.created_at || 'Recently'}
+                    </span>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', background: '#FFFBEB', border: '1px solid #FCD34D', padding: '0.4rem 0.8rem', borderRadius: '12px' }}>
+                    {[...Array(5)].map((_, i) => (
+                      <Star
+                        key={i}
+                        size={16}
+                        fill={i < fb.rating ? '#F59E0B' : 'none'}
+                        color={i < fb.rating ? '#F59E0B' : '#CBD5E1'}
+                      />
+                    ))}
+                    <span style={{ fontWeight: 800, color: '#B45309', marginLeft: '0.3rem', fontSize: '0.88rem' }}>
+                      {fb.rating}.0
+                    </span>
+                  </div>
                 </div>
               ))
             )}
@@ -484,14 +602,14 @@ export default function DonorDashboard({ donations = [], setDonations, requests 
       )}
 
       {showModal && (
-        <div className="modal-overlay">
-          <div className="modal-card">
+        <div className="modal-overlay" style={{ overflowY: 'auto' }}>
+          <div className="modal-card" style={{ maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}>
             <div className="modal-header">
               <h3 className="modal-title">Post Food Listing & AI Check</h3>
               <button className="close-btn" onClick={() => setShowModal(false)}>×</button>
             </div>
 
-            <form onSubmit={handleCreateDonation} className="modal-body">
+            <form onSubmit={handleCreateDonation} className="modal-body" style={{ overflowY: 'auto', flex: 1, padding: '1.75rem 2rem' }}>
               <div className="form-group">
                 <label className="form-label">Food Photo (Optional)</label>
                 {imagePreview ? (

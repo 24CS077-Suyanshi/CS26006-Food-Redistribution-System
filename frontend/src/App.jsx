@@ -57,32 +57,40 @@ const INITIAL_DONATIONS = [
 //when user login set the user in local storage
 function MainAppContent() {
   const { user } = useAuth();
+  // Restore activeTab from URL hash or localStorage so refresh stays on the same page
   const [activeTab, setActiveTab] = useState(() => {
-    try {
-      const savedUser = localStorage.getItem('frs_user');
-      if (savedUser) {
-        return 'dashboard';
+    const hash = window.location.hash.replace('#', '').trim();
+    if (hash) {
+      const topTab = hash.split('/')[0];
+      if (['home', 'dashboard', 'ai-predictor', 'auth'].includes(topTab)) {
+        return topTab;
       }
-      return 'home';
-    } catch (_) {
-      return 'home';
     }
+    const saved = localStorage.getItem('frs_activeTab');
+    if (saved && ['home', 'dashboard', 'ai-predictor', 'auth'].includes(saved)) {
+      return saved;
+    }
+    return 'home';
   });
-  const [authMode, setAuthMode] = useState(() => localStorage.getItem('frs_authMode') || 'login');
-  const [authRole, setAuthRole] = useState(() => localStorage.getItem('frs_authRole') || 'donor');
-
-  useEffect(() => {
-    if (user) {
-      setActiveTab('dashboard');
-    }
-  }, [user]);
+  const [authMode, setAuthMode] = useState('login');
+  const [authRole, setAuthRole] = useState('donor');
 
   useEffect(() => {
     localStorage.setItem('frs_activeTab', activeTab);
     localStorage.setItem('frs_authMode', authMode);
     localStorage.setItem('frs_authRole', authRole);
     if (activeTab === 'dashboard') {
-      window.history.replaceState({ tab: 'dashboard' }, '', '#dashboard');
+      if (!window.location.hash.startsWith('#dashboard')) {
+        window.history.replaceState({ tab: 'dashboard' }, '', '#dashboard');
+      }
+    } else if (activeTab === 'home') {
+      if (!window.location.hash || window.location.hash === '#' || window.location.hash === '#home') {
+        window.history.replaceState({ tab: 'home' }, '', window.location.pathname);
+      }
+    } else {
+      if (!window.location.hash.startsWith(`#${activeTab}`)) {
+        window.history.replaceState({ tab: activeTab }, '', `#${activeTab}`);
+      }
     }
   }, [activeTab, authMode, authRole]);
 
@@ -92,8 +100,16 @@ function MainAppContent() {
       if (event.state && event.state.tab) {
         setActiveTab(event.state.tab);
       } else {
-        const savedUser = localStorage.getItem('frs_user');
-        setActiveTab(savedUser ? 'dashboard' : 'home');
+        const hash = window.location.hash.replace('#', '').trim();
+        if (hash) {
+          const topTab = hash.split('/')[0];
+          if (['home', 'dashboard', 'ai-predictor', 'auth'].includes(topTab)) {
+            setActiveTab(topTab);
+            return;
+          }
+        }
+        const saved = localStorage.getItem('frs_activeTab');
+        setActiveTab(saved || 'home');
       }
     };
 
@@ -103,7 +119,12 @@ function MainAppContent() {
 
   const changeTab = (newTab) => {
     setActiveTab(newTab);
-    window.history.pushState({ tab: newTab }, '', `#${newTab}`);
+    localStorage.setItem('frs_activeTab', newTab);
+    if (newTab === 'home') {
+      window.history.pushState({ tab: 'home' }, '', window.location.pathname);
+    } else {
+      window.history.pushState({ tab: newTab }, '', `#${newTab}`);
+    }
   };
 
   const [donations, setDonations] = useState([]);
@@ -124,7 +145,7 @@ function MainAppContent() {
       }
     };
     fetchData();
-  }, []);
+  }, [user, activeTab]);
 
   //when someone click on login or signup in navbar open auth page 
   const handleOpenAuth = (mode = 'login', role = 'donor') => {
