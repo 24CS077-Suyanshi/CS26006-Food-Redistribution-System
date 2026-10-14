@@ -20,7 +20,7 @@
 - **Student ID:** 24CS077
 - **Repository Name:** CS26006-Food-Redistribution-System
 - **Department:** Department of Computer Science & Engineering
-- **Institute:** Chandubhai S. Patel Institute of Technology (CSPIT) / Devang Patel Institute of Advance Technology and Research (DEPSTAR)
+- **Institute:** Chandubhai S. Patel Institute of Technology (CSPIT) 
 - **University:** Charotar University of Science and Technology (CHARUSAT), Changa, Anand, Gujarat - 388421
 
 ---
