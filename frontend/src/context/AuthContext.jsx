@@ -3,26 +3,39 @@ import React, { createContext, useState, useEffect, useContext } from 'react';
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  // Always start with no user logged in when the app is run/opened
-  const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
-
-  // Clear any previously saved session from localStorage on initial load
-  useEffect(() => {
+  // Restore user and token from localStorage so refresh stays logged in
+  const [user, setUser] = useState(() => {
     try {
-      localStorage.removeItem('frs_user');
-      localStorage.removeItem('frs_token');
-    } catch (_) {}
-  }, []);
+      const savedUser = localStorage.getItem('frs_user');
+      return savedUser ? JSON.parse(savedUser) : null;
+    } catch (_) {
+      return null;
+    }
+  });
+
+  const [token, setToken] = useState(() => {
+    try {
+      return localStorage.getItem('frs_token') || null;
+    } catch (_) {
+      return null;
+    }
+  });
 
   const login = (userData, userToken) => {
     setUser(userData);
     setToken(userToken);
+    try {
+      localStorage.setItem('frs_user', JSON.stringify(userData));
+      if (userToken) localStorage.setItem('frs_token', userToken);
+    } catch (_) {}
   };
 
   const updateUser = (fields) => {
     const updatedUser = { ...user, ...fields };
     setUser(updatedUser);
+    try {
+      localStorage.setItem('frs_user', JSON.stringify(updatedUser));
+    } catch (_) {}
   };
 
   const logout = () => {
@@ -31,6 +44,7 @@ export const AuthProvider = ({ children }) => {
     try {
       localStorage.removeItem('frs_user');
       localStorage.removeItem('frs_token');
+      localStorage.removeItem('frs_activeTab');
     } catch (_) {}
   };
 

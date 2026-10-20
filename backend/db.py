@@ -86,17 +86,19 @@ MOCK_NOTIFICATIONS = [
     {
         "id": 1,
         "user_id": 1,
+        "role": "donor",
         "title": "Donation Claimed",
         "message": "Hope Shelter NGO has claimed your donation 'Surplus Banquet Meals'.",
-        "is_read": False,
+        "is_read": True,
         "created_at": "2026-08-10 14:45:00"
     },
     {
         "id": 2,
         "user_id": 2,
+        "role": "ngo",
         "title": "Volunteer Assigned",
         "message": "Alex Smith has been assigned to pick up batch #103.",
-        "is_read": False,
+        "is_read": True,
         "created_at": "2026-08-10 15:00:00"
     }
 ]

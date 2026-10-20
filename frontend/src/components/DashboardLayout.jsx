@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { LogOut, Search, Bell, Menu, X, ChevronRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -8,10 +8,68 @@ export default function DashboardLayout({
   activeTab, 
   setActiveTab, 
   searchQuery, 
-  setSearchQuery 
+  setSearchQuery,
+  unreadCount: externalUnreadCount
 }) {
   const { user, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [internalUnread, setInternalUnread] = useState(0);
+
+  const handleOpenNotifications = () => {
+    setActiveTab('notifications');
+    setInternalUnread(0);
+    try {
+      localStorage.setItem('frs_viewed_notifs_at', Date.now().toString());
+    } catch (_) {}
+    fetch('http://127.0.0.1:5000/api/notifications/mark-read', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ role: user?.role, user_id: user?.id })
+    }).catch(() => {});
+  };
+
+  useEffect(() => {
+    if (externalUnreadCount !== undefined) {
+      setInternalUnread(externalUnreadCount);
+      return;
+    }
+    const fetchUnread = async () => {
+      try {
+        const res = await fetch(`http://127.0.0.1:5000/api/notifications?role=${user?.role || 'donor'}&user_id=${user?.id || 1}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data)) {
+            const viewedAt = parseInt(localStorage.getItem('frs_viewed_notifs_at') || '0', 10);
+            const unread = data.filter(n => {
+              if (n.is_read) return false;
+              if (viewedAt && n.created_at) {
+                const notifTime = new Date(n.created_at).getTime();
+                if (notifTime && notifTime <= viewedAt) return false;
+              }
+              return true;
+            }).length;
+            setInternalUnread(unread);
+          }
+        }
+      } catch (_) {}
+    };
+    fetchUnread();
+    const timer = setInterval(fetchUnread, 10000);
+    return () => clearInterval(timer);
+  }, [user?.role, user?.id, externalUnreadCount]);
+
+  useEffect(() => {
+    if (activeTab === 'notifications') {
+      setInternalUnread(0);
+      try {
+        localStorage.setItem('frs_viewed_notifs_at', Date.now().toString());
+      } catch (_) {}
+    }
+  }, [activeTab]);
+
+  const displayUnread = activeTab === 'notifications'
+    ? 0
+    : (externalUnreadCount !== undefined ? externalUnreadCount : internalUnread);
 
   return (
     <div className="dashboard-container">
@@ -32,7 +90,13 @@ export default function DashboardLayout({
               return (
                 <button
                   key={item.id}
-                  onClick={() => setActiveTab(item.id)}
+                  onClick={() => {
+                    if (item.id === 'notifications') {
+                      handleOpenNotifications();
+                    } else {
+                      setActiveTab(item.id);
+                    }
+                  }}
                   style={{
                     border: 'none',
                     background: active ? '#F0FDF4' : 'transparent',
@@ -52,7 +116,19 @@ export default function DashboardLayout({
                   }}
                 >
                   <Icon size={18} color={active ? 'var(--primary)' : 'var(--text-muted)'} />
-                  <span>{item.label}</span>
+                  <span style={{ flex: 1 }}>{item.label}</span>
+                  {item.id === 'notifications' && displayUnread > 0 && (
+                    <span style={{
+                      background: '#EF4444',
+                      color: 'white',
+                      fontSize: '0.65rem',
+                      fontWeight: 800,
+                      padding: '0.1rem 0.45rem',
+                      borderRadius: '9999px'
+                    }}>
+                      {displayUnread}
+                    </span>
+                  )}
                 </button>
               );
             })}
@@ -146,25 +222,32 @@ export default function DashboardLayout({
               </div>
 
               {/* Notification Bell */}
-              <div style={{ position: 'relative', cursor: 'pointer', padding: '0.35rem' }} onClick={() => setActiveTab('notifications')}>
-                <Bell size={20} color="var(--text-muted)" />
-                <span style={{
-                  position: 'absolute',
-                  top: '-1px',
-                  right: '-1px',
-                  background: '#EF4444',
-                  color: 'white',
-                  fontSize: '0.6rem',
-                  fontWeight: 800,
-                  width: '16px',
-                  height: '16px',
-                  borderRadius: '50%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}>
-                  2
-                </span>
+              <div 
+                style={{ position: 'relative', cursor: 'pointer', padding: '0.35rem' }} 
+                onClick={handleOpenNotifications}
+                title="Notifications"
+              >
+                <Bell size={20} color={activeTab === 'notifications' ? 'var(--primary)' : 'var(--text-muted)'} />
+                {displayUnread > 0 && (
+                  <span style={{
+                    position: 'absolute',
+                    top: '-1px',
+                    right: '-1px',
+                    background: '#EF4444',
+                    color: 'white',
+                    fontSize: '0.62rem',
+                    fontWeight: 800,
+                    minWidth: '16px',
+                    height: '16px',
+                    padding: '0 4px',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    {displayUnread}
+                  </span>
+                )}
               </div>
 
               {/* User Profile Badge */}
@@ -253,8 +336,12 @@ export default function DashboardLayout({
                     <button
                       key={item.id}
                       onClick={() => {
-                        setActiveTab(item.id);
                         setMobileMenuOpen(false);
+                        if (item.id === 'notifications') {
+                          handleOpenNotifications();
+                        } else {
+                          setActiveTab(item.id);
+                        }
                       }}
                       style={{
                         display: 'flex',

@@ -23,6 +23,7 @@ import toast from 'react-hot-toast';
 import axios from 'axios';
 import AIPredictionPage from './AIPredictionPage';
 import HowItWorksTab from '../components/HowItWorksTab';
+import NotificationsTab from '../components/NotificationsTab';
 
 export default function VolunteerDashboard({ requests = [], setRequests, donations = [], setDonations }) {
   const { user, updateUser } = useAuth();
@@ -32,6 +33,7 @@ export default function VolunteerDashboard({ requests = [], setRequests, donatio
   });
   const [searchQuery, setSearchQuery] = useState('');
   const [profileSaved, setProfileSaved] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   // OTP Modal State
   const [showOtpModal, setShowOtpModal] = useState(false);
@@ -41,6 +43,9 @@ export default function VolunteerDashboard({ requests = [], setRequests, donatio
   const [isVerifying, setIsVerifying] = useState(false);
 
   const handleSelectTab = (tabId) => {
+    if (tabId === 'notifications') {
+      setUnreadCount(0);
+    }
     if (tabId === activeTab) return;
     setActiveTab(tabId);
     window.history.pushState({ tab: 'dashboard', subTab: tabId }, '', `#dashboard/${tabId}`);
@@ -239,6 +244,7 @@ export default function VolunteerDashboard({ requests = [], setRequests, donatio
       setActiveTab={handleSelectTab}
       searchQuery={searchQuery}
       setSearchQuery={setSearchQuery}
+      unreadCount={unreadCount}
     >
       {activeTab === 'dashboard' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem', animation: 'fadeIn 0.3s ease-out' }}>
@@ -487,10 +493,11 @@ export default function VolunteerDashboard({ requests = [], setRequests, donatio
       )}
 
       {activeTab === 'notifications' && (
-        <div style={{ background: 'white', padding: '2rem', borderRadius: '20px', border: '1px solid var(--border-subtle)', animation: 'fadeIn 0.3s ease-out' }}>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-dark)', marginBottom: '1.5rem' }}>Notifications</h2>
-          <p style={{ color: 'var(--text-muted)' }}>You have no new notifications.</p>
-        </div>
+        <NotificationsTab 
+          userRole="volunteer" 
+          userId={user?.id || 3} 
+          onUnreadCountChange={setUnreadCount}
+        />
       )}
 
       {activeTab === 'settings' && (

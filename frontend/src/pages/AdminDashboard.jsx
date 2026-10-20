@@ -30,7 +30,8 @@ import {
   Award,
   Star,
   Sparkles,
-  Workflow
+  Workflow,
+  Bell
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import DashboardLayout from '../components/DashboardLayout';
@@ -38,6 +39,7 @@ import toast from 'react-hot-toast';
 import axios from 'axios';
 import AIPredictionPage from './AIPredictionPage';
 import HowItWorksTab from '../components/HowItWorksTab';
+import NotificationsTab from '../components/NotificationsTab';
 
 // Initial fallback users when offline
 const FALLBACK_USERS = [
@@ -128,8 +130,12 @@ export default function AdminDashboard({
     return (parts[0] === 'dashboard' && parts[1]) ? parts[1] : 'dashboard';
   });
   const [searchQuery, setSearchQuery] = useState('');
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const handleSelectTab = (tabId) => {
+    if (tabId === 'notifications') {
+      setUnreadCount(0);
+    }
     if (tabId === activeTab) return;
     setActiveTab(tabId);
     window.history.pushState({ tab: 'dashboard', subTab: tabId }, '', `#dashboard/${tabId}`);
@@ -252,6 +258,7 @@ export default function AdminDashboard({
     { id: 'users', label: 'Manage Users', icon: Users },
     { id: 'donations', label: 'All Donations', icon: Utensils },
     { id: 'requests', label: 'Claims & Logistics', icon: Truck },
+    { id: 'notifications', label: 'Alerts & Notifications', icon: Bell },
     { id: 'feedback', label: 'Platform Reviews', icon: Star },
     { id: 'ai_predictor', label: 'AI Freshness Predictor', icon: Sparkles },
     { id: 'how_it_works', label: 'How It Works', icon: Workflow },
@@ -456,6 +463,7 @@ export default function AdminDashboard({
       setActiveTab={handleSelectTab}
       searchQuery={searchQuery}
       setSearchQuery={setSearchQuery}
+      unreadCount={unreadCount}
     >
       {/* Platform Emergency Broadcast Banner if Active */}
       {broadcastActive && broadcastMessage && (
@@ -1740,6 +1748,14 @@ export default function AdminDashboard({
 
       {activeTab === 'how_it_works' && (
         <HowItWorksTab userRole="admin" onNavigateTab={handleSelectTab} />
+      )}
+
+      {activeTab === 'notifications' && (
+        <NotificationsTab 
+          userRole="admin" 
+          userId={4} 
+          onUnreadCountChange={setUnreadCount}
+        />
       )}
 
       {/* ======================================================== */}

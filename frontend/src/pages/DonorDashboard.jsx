@@ -22,6 +22,7 @@ import toast from 'react-hot-toast';
 import axios from 'axios';
 import AIPredictionPage from './AIPredictionPage';
 import HowItWorksTab from '../components/HowItWorksTab';
+import NotificationsTab from '../components/NotificationsTab';
 
 export default function DonorDashboard({ donations = [], setDonations, requests = [], setRequests }) {
   const { user, updateUser } = useAuth();
@@ -35,6 +36,7 @@ export default function DonorDashboard({ donations = [], setDonations, requests 
   const [aiResult, setAiResult] = useState(null);
   const [profileSaved, setProfileSaved] = useState(false);
   const [feedbacks, setFeedbacks] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     axios.get('http://127.0.0.1:5000/api/feedback')
@@ -47,6 +49,9 @@ export default function DonorDashboard({ donations = [], setDonations, requests 
   }, []);
 
   const handleSelectTab = (tabId) => {
+    if (tabId === 'notifications') {
+      setUnreadCount(0);
+    }
     if (tabId === activeTab) return;
     setActiveTab(tabId);
     window.history.pushState({ tab: 'dashboard', subTab: tabId }, '', `#dashboard/${tabId}`);
@@ -218,6 +223,7 @@ export default function DonorDashboard({ donations = [], setDonations, requests 
       setActiveTab={handleSelectTab}
       searchQuery={searchQuery}
       setSearchQuery={setSearchQuery}
+      unreadCount={unreadCount}
     >
       {activeTab === 'dashboard' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem', animation: 'fadeIn 0.3s ease-out' }}>
@@ -588,23 +594,11 @@ export default function DonorDashboard({ donations = [], setDonations, requests 
       )}
 
       {activeTab === 'notifications' && (
-        <div style={{ background: 'white', padding: '2rem', borderRadius: '20px', border: '1px solid var(--border-subtle)', animation: 'fadeIn 0.3s ease-out' }}>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-dark)', marginBottom: '1.5rem' }}>Notification Center</h2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-            {myRequests.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '2.5rem 1rem', color: 'var(--text-muted)' }}>
-                No notifications right now.
-              </div>
-            ) : (
-              myRequests.map(req => (
-                <div key={req.id} style={{ padding: '1rem', borderRadius: '12px', background: '#F0FDF4', borderLeft: '4px solid #22C55E' }}>
-                  <strong style={{ display: 'block', fontSize: '0.95rem', color: 'var(--text-dark)' }}>Food Claim Request</strong>
-                  <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{req.ngo_name} requested "{req.title || req.donation_title}"</span>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
+        <NotificationsTab 
+          userRole="donor" 
+          userId={user?.id || 1} 
+          onUnreadCountChange={setUnreadCount}
+        />
       )}
 
       {activeTab === 'settings' && (

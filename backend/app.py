@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import jwt
 import datetime
+import time
 import os
 import json
 import random
@@ -14,6 +15,7 @@ from db import MOCK_USERS, MOCK_DONATIONS, MOCK_REQUESTS, MOCK_NOTIFICATIONS, MO
 USERS_FILE = os.path.join(os.path.dirname(__file__), 'users_data.json')
 DONATIONS_FILE = os.path.join(os.path.dirname(__file__), 'donations_data.json')
 REQUESTS_FILE = os.path.join(os.path.dirname(__file__), 'requests_data.json')
+NOTIFICATIONS_FILE = os.path.join(os.path.dirname(__file__), 'notifications_data.json')
 
 def send_email_otp(to_email, otp_code, food_title="Surplus Food", donor_name="Food Donor"):
     """Sends OTP email to the recipient NGO's registered email address."""
@@ -146,11 +148,105 @@ def save_persistent_requests(requests_list):
     except Exception as e:
         print("Error saving requests_data.json:", e)
 
+def load_persistent_notifications():
+    if os.path.exists(NOTIFICATIONS_FILE):
+        try:
+            with open(NOTIFICATIONS_FILE, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                if isinstance(data, list) and len(data) > 0:
+                    return data
+        except Exception as e:
+            print("Error loading notifications_data.json:", e)
+    return [
+        {
+            "id": 1,
+            "user_id": 1,
+            "role": "donor",
+            "title": "Donation Claimed by NGO",
+            "message": "Hope Shelter NGO has requested your donation 'Surplus Banquet Meals'.",
+            "type": "claim",
+            "is_read": False,
+            "created_at": "2026-10-20 18:30:00"
+        },
+        {
+            "id": 2,
+            "user_id": 4,
+            "role": "admin",
+            "title": "NGO Claim Submitted",
+            "message": "Hope Shelter NGO claimed 'Surplus Banquet Meals' from Grand Hyatt Hotel.",
+            "type": "claim",
+            "is_read": False,
+            "created_at": "2026-10-20 18:30:00"
+        },
+        {
+            "id": 3,
+            "user_id": 2,
+            "role": "ngo",
+            "title": "New Surplus Food Available 🍲",
+            "message": "Grand Hyatt Hotel listed 'Surplus Banquet Meals (Buffet)' (45 Portions). Ready to claim!",
+            "type": "donation",
+            "is_read": False,
+            "created_at": "2026-10-20 17:00:00"
+        },
+        {
+            "id": 4,
+            "user_id": 3,
+            "role": "volunteer",
+            "title": "New Pickup Task Available 🚚",
+            "message": "Task available: Downtown Center to Westside Care Center for 45 Portions.",
+            "type": "pickup",
+            "is_read": False,
+            "created_at": "2026-10-20 18:31:00"
+        }
+    ]
+
+def save_persistent_notifications(notifs_list):
+    try:
+        with open(NOTIFICATIONS_FILE, 'w', encoding='utf-8') as f:
+            json.dump(notifs_list, f, indent=2)
+    except Exception as e:
+        print("Error saving notifications_data.json:", e)
+
 # Initialize in-memory fallback from persistent storage
 MOCK_DONATIONS.clear()
 MOCK_DONATIONS.extend(load_persistent_donations())
 MOCK_REQUESTS.clear()
 MOCK_REQUESTS.extend(load_persistent_requests())
+MOCK_NOTIFICATIONS.clear()
+MOCK_NOTIFICATIONS.extend(load_persistent_notifications())
+
+def add_notification(user_id, role, title, message, notif_type="info"):
+    """Creates a real-time notification in database and persistent in-memory storage."""
+    notif = {
+        "id": int(time.time() * 1000) % 100000000,
+        "user_id": user_id,
+        "role": role,
+        "title": title,
+        "message": message,
+        "type": notif_type,
+        "is_read": False,
+        "created_at": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    }
+    conn = get_db_connection()
+    if conn:
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                "INSERT INTO notifications (user_id, title, message, is_read, created_at) VALUES (%s, %s, %s, %s, %s)",
+                (user_id if isinstance(user_id, int) else 1, title, message, 0, notif["created_at"])
+            )
+            conn.commit()
+            cursor.close()
+            conn.close()
+        except Exception as e:
+            print("DB Notification Insert Error:", e)
+            if conn:
+                try: conn.close()
+                except: pass
+
+    MOCK_NOTIFICATIONS.insert(0, notif)
+    save_persistent_notifications(MOCK_NOTIFICATIONS)
+    return notif
 
 def sync_data_to_mysql():
     """Automatically syncs all users and donations from JSON files into MySQL database if connected."""
@@ -505,6 +601,24 @@ def create_donation():
             data['status'] = 'Available'
             MOCK_DONATIONS.insert(0, data)
             save_persistent_donations(MOCK_DONATIONS)
+
+            # Trigger real-time notifications to NGOs & Admin
+            donor_name = data.get('donor_name', 'Grand Hyatt Hotel')
+            add_notification(
+                user_id=2,
+                role='ngo',
+                title='New Surplus Food Listed 🍲',
+                message=f"{donor_name} listed '{title}' ({quantity}). Ready to claim now!",
+                notif_type='donation'
+            )
+            add_notification(
+                user_id=4,
+                role='admin',
+                title='New Food Donation Listed',
+                message=f"{donor_name} listed '{title}' ({quantity}) at {location}.",
+                notif_type='donation'
+            )
+
             return jsonify({"message": "Donation created successfully", "donation": data}), 201
         except Exception as e:
             print("DB Error:", e)
@@ -527,6 +641,23 @@ def create_donation():
     }
     MOCK_DONATIONS.insert(0, new_donation)
     save_persistent_donations(MOCK_DONATIONS)
+
+    # Trigger real-time notifications to NGOs & Admin
+    donor_name = data.get('donor_name', 'Grand Hyatt Hotel')
+    add_notification(
+        user_id=2,
+        role='ngo',
+        title='New Surplus Food Listed 🍲',
+        message=f"{donor_name} listed '{title}' ({quantity}). Ready to claim now!",
+        notif_type='donation'
+    )
+    add_notification(
+        user_id=4,
+        role='admin',
+        title='New Food Donation Listed',
+        message=f"{donor_name} listed '{title}' ({quantity}) at {location}.",
+        notif_type='donation'
+    )
 
     return jsonify({
         "message": "Donation created successfully",
@@ -619,6 +750,35 @@ def create_request():
             # Send OTP to the NGO's registered email
             send_email_otp(ngo_email, generated_otp, food_title=donation.get('title', 'Food Listing'), donor_name=donation.get('donor_name', 'Food Donor'))
 
+            # Trigger real-time notifications for Donor and Admin
+            donor_id = donation.get('donor_id', 1)
+            donor_name = donation.get('donor_name', 'Donor')
+            food_name = donation.get('title', 'Food Listing')
+            # 1. To Donor
+            add_notification(
+                user_id=donor_id,
+                role='donor',
+                title='Food Claimed by NGO',
+                message=f"{ngo_name} has claimed your donation '{food_name}'. A 4-digit pickup OTP has been generated.",
+                notif_type='claim'
+            )
+            # 2. To Admin
+            add_notification(
+                user_id=4,
+                role='admin',
+                title='New NGO Claim Submitted',
+                message=f"{ngo_name} requested '{food_name}' from {donor_name}.",
+                notif_type='claim'
+            )
+            # 3. To Volunteer
+            add_notification(
+                user_id=3,
+                role='volunteer',
+                title='New Pickup Task Available 🚚',
+                message=f"Pickup ready: '{food_name}' from {donation.get('location', 'Donor')} for {ngo_name}.",
+                notif_type='pickup'
+            )
+
             return jsonify({"message": f"Donation request submitted! OTP sent to {ngo_email}", "request": new_req}), 201
         except Exception as e:
             print("DB Error:", e)
@@ -651,6 +811,35 @@ def create_request():
 
     # Send OTP to the NGO's registered email
     send_email_otp(ngo_email, generated_otp, food_title=donation.get('title', 'Food Listing'), donor_name=donation.get('donor_name', 'Food Donor'))
+
+    # Trigger real-time notifications for Donor and Admin
+    donor_id = donation.get('donor_id', 1)
+    donor_name = donation.get('donor_name', 'Donor')
+    food_name = donation.get('title', 'Food Listing')
+    # 1. To Donor
+    add_notification(
+        user_id=donor_id,
+        role='donor',
+        title='Food Claimed by NGO',
+        message=f"{ngo_name} has claimed your donation '{food_name}'. A 4-digit pickup OTP has been generated.",
+        notif_type='claim'
+    )
+    # 2. To Admin
+    add_notification(
+        user_id=4,
+        role='admin',
+        title='New NGO Claim Submitted',
+        message=f"{ngo_name} requested '{food_name}' from {donor_name}.",
+        notif_type='claim'
+    )
+    # 3. To Volunteer
+    add_notification(
+        user_id=3,
+        role='volunteer',
+        title='New Pickup Task Available 🚚',
+        message=f"Pickup ready: '{food_name}' from {donation.get('location', 'Donor')} for {ngo_name}.",
+        notif_type='pickup'
+    )
 
     return jsonify({
         "message": f"Donation request submitted! OTP sent to {ngo_email}",
@@ -706,6 +895,12 @@ def accept_request(request_id):
                 "level": "warning"
             })
 
+            # Add notifications
+            req_title = (updated_req or {}).get('donation_title') or (updated_req or {}).get('title', 'Food Listing')
+            add_notification(user_id=1, role='donor', title='Volunteer In Transit 🚚', message=f"Volunteer {volunteer_name} accepted pickup for '{req_title}'.", notif_type='pickup')
+            add_notification(user_id=(updated_req or {}).get('ngo_id', 2), role='ngo', title='Volunteer Assigned', message=f"Volunteer {volunteer_name} is on the way to pick up '{req_title}'.", notif_type='pickup')
+            add_notification(user_id=4, role='admin', title='Delivery In Transit', message=f"Volunteer {volunteer_name} started delivery #{request_id} for '{req_title}'.", notif_type='pickup')
+
             return jsonify({"message": "Task accepted! Status updated to In Transit.", "request": updated_req}), 200
         except Exception as e:
             print("DB Error in accept_request:", e)
@@ -740,6 +935,12 @@ def accept_request(request_id):
         "timestamp": "Just now",
         "level": "warning"
     })
+
+    # Add notifications
+    req_title = (req_item or {}).get('donation_title') or (req_item or {}).get('title', 'Food Listing')
+    add_notification(user_id=1, role='donor', title='Volunteer In Transit 🚚', message=f"Volunteer {volunteer_name} accepted pickup for '{req_title}'.", notif_type='pickup')
+    add_notification(user_id=(req_item or {}).get('ngo_id', 2), role='ngo', title='Volunteer Assigned', message=f"Volunteer {volunteer_name} is on the way to pick up '{req_title}'.", notif_type='pickup')
+    add_notification(user_id=4, role='admin', title='Delivery In Transit', message=f"Volunteer {volunteer_name} started delivery #{request_id} for '{req_title}'.", notif_type='pickup')
 
     return jsonify({"message": "Task accepted! Status updated to In Transit.", "request": req_item}), 200
 
@@ -840,6 +1041,13 @@ def verify_otp(request_id):
                     "level": "success"
                 })
 
+                # Add delivery notifications
+                req_title = (updated_req or req_item or {}).get('donation_title') or (updated_req or req_item or {}).get('title', 'Food Listing')
+                ngo_name = (req_item or {}).get('ngo_name', 'NGO')
+                add_notification(user_id=1, role='donor', title='Donation Delivered Successfully 🎉', message=f"Your donation '{req_title}' was successfully delivered to {ngo_name}!", notif_type='delivery')
+                add_notification(user_id=(req_item or {}).get('ngo_id', 2), role='ngo', title='Food Delivery Received ✅', message=f"Food delivery verified and received for '{req_title}'.", notif_type='delivery')
+                add_notification(user_id=4, role='admin', title='Delivery Verified via OTP', message=f"Handover verified via OTP for '{req_title}' to {ngo_name}.", notif_type='delivery')
+
                 return jsonify({
                     "message": "OTP verified successfully! Food delivery has been marked as Delivered.",
                     "request": updated_req,
@@ -906,6 +1114,13 @@ def verify_otp(request_id):
         "level": "success"
     })
 
+    # Add delivery notifications
+    req_title = (req_item or {}).get('donation_title') or (req_item or {}).get('title', 'Food Listing')
+    ngo_name = (req_item or {}).get('ngo_name', 'NGO')
+    add_notification(user_id=1, role='donor', title='Donation Delivered Successfully 🎉', message=f"Your donation '{req_title}' was successfully delivered to {ngo_name}!", notif_type='delivery')
+    add_notification(user_id=(req_item or {}).get('ngo_id', 2), role='ngo', title='Food Delivery Received ✅', message=f"Food delivery verified and received for '{req_title}'.", notif_type='delivery')
+    add_notification(user_id=4, role='admin', title='Delivery Verified via OTP', message=f"Handover verified via OTP for '{req_title}' to {ngo_name}.", notif_type='delivery')
+
     return jsonify({
         "message": "OTP verified successfully! Food delivery has been marked as Delivered.",
         "request": req_item,
@@ -916,20 +1131,112 @@ def verify_otp(request_id):
 # --- NOTIFICATIONS ENDPOINTS ---
 @app.route('/api/notifications', methods=['GET'])
 def get_notifications():
+    user_id = request.args.get('user_id')
+    role = (request.args.get('role') or '').lower()
+
     conn = get_db_connection()
     if conn:
         try:
             cursor = conn.cursor(dictionary=True)
-            cursor.execute("SELECT * FROM notifications ORDER BY created_at DESC LIMIT 50")
+            # Try to add role column if missing
+            try:
+                cursor.execute("ALTER TABLE notifications ADD COLUMN role VARCHAR(50) DEFAULT 'all'")
+                cursor.execute("ALTER TABLE notifications ADD COLUMN type VARCHAR(50) DEFAULT 'system'")
+                conn.commit()
+            except Exception:
+                pass
+
+            if role == 'admin' or not role:
+                cursor.execute("SELECT * FROM notifications ORDER BY created_at DESC LIMIT 50")
+            elif user_id:
+                cursor.execute("SELECT * FROM notifications WHERE user_id = %s ORDER BY created_at DESC LIMIT 50", (user_id,))
+            else:
+                cursor.execute("SELECT * FROM notifications ORDER BY created_at DESC LIMIT 50")
             notifs = cursor.fetchall()
             cursor.close()
             conn.close()
-            if notifs:
-                return jsonify(notifs)
+            if notifs is not None:
+                formatted = []
+                for n in notifs:
+                    item = dict(n)
+                    item['is_read'] = bool(item.get('is_read'))
+                    if 'role' not in item or not item['role']:
+                        # Assign role based on user_id if missing
+                        uid_str = str(item.get('user_id'))
+                        item['role'] = 'donor' if uid_str == '1' else ('ngo' if uid_str == '2' else ('volunteer' if uid_str == '3' else 'admin'))
+                    formatted.append(item)
+
+                if role == 'admin' or not role:
+                    return jsonify(formatted)
+
+                filtered = [
+                    n for n in formatted
+                    if (user_id and str(n.get('user_id')) == str(user_id)) or
+                       (n.get('role') and str(n.get('role')).lower() == role) or
+                       (n.get('role') == 'all')
+                ]
+                return jsonify(filtered)
         except Exception as e:
             print("Notifications DB Error:", e)
-            if conn: conn.close()
-    return jsonify(MOCK_NOTIFICATIONS)
+            if conn:
+                try: conn.close()
+                except: pass
+
+    # In-memory filter (using MOCK_NOTIFICATIONS)
+    if not role or role == 'admin':
+        return jsonify(MOCK_NOTIFICATIONS)
+
+    filtered = [
+        n for n in MOCK_NOTIFICATIONS
+        if (user_id and str(n.get('user_id')) == str(user_id)) or
+           (n.get('role') and str(n.get('role')).lower() == role) or
+           (n.get('role') == 'all')
+    ]
+    return jsonify(filtered)
+
+@app.route('/api/notifications/mark-read', methods=['PUT', 'POST'])
+def mark_notifications_read():
+    data = request.get_json() or {}
+    user_id = data.get('user_id')
+    role = (data.get('role') or '').lower()
+    notif_id = data.get('id')
+
+    conn = get_db_connection()
+    if conn:
+        try:
+            cursor = conn.cursor()
+            if notif_id:
+                cursor.execute("UPDATE notifications SET is_read = 1 WHERE id = %s", (notif_id,))
+            elif role == 'admin':
+                cursor.execute("UPDATE notifications SET is_read = 1")
+            elif user_id:
+                cursor.execute("UPDATE notifications SET is_read = 1 WHERE user_id = %s", (user_id,))
+            else:
+                cursor.execute("UPDATE notifications SET is_read = 1")
+            conn.commit()
+            cursor.close()
+            conn.close()
+        except Exception as e:
+            print("DB mark read error:", e)
+            if conn:
+                try: conn.close()
+                except: pass
+
+    # In-memory update
+    for n in MOCK_NOTIFICATIONS:
+        if notif_id and str(n.get('id')) == str(notif_id):
+            n['is_read'] = True
+        elif role == 'admin':
+            n['is_read'] = True
+        elif user_id and str(n.get('user_id')) == str(user_id):
+            n['is_read'] = True
+        elif role and str(n.get('role', '')).lower() == role:
+            n['is_read'] = True
+        elif not notif_id and not user_id and not role:
+            n['is_read'] = True
+
+    save_persistent_notifications(MOCK_NOTIFICATIONS)
+    return jsonify({"message": "Notifications marked as read"}), 200
 
 # --- FEEDBACK & RATINGS ENDPOINTS ---
 MOCK_FEEDBACK = [
@@ -1017,6 +1324,27 @@ def submit_feedback():
         "timestamp": "Just now",
         "level": "success"
     })
+
+    # Trigger notifications for Donor and Admin
+    donor_id = 1
+    donation = next((d for d in MOCK_DONATIONS if str(d.get('id')) == str(donation_id)), None)
+    if donation:
+        donor_id = donation.get('donor_id', 1)
+
+    add_notification(
+        user_id=donor_id,
+        role='donor',
+        title=f'New Review Received ({rating} ⭐)',
+        message=f"{user_name} rated your food donation: \"{comment or 'Thank you for your generosity!'}\"",
+        notif_type='rating'
+    )
+    add_notification(
+        user_id=4,
+        role='admin',
+        title='Platform Feedback Submitted',
+        message=f"{user_name} submitted a {rating} ⭐ review for donation #{donation_id}.",
+        notif_type='rating'
+    )
 
     return jsonify({"message": "Feedback submitted successfully! Thank you for rating.", "feedback": new_fb}), 201
 

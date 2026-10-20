@@ -1,0 +1,42 @@
+[
+  {
+    "id": 1,
+    "user_id": 1,
+    "role": "donor",
+    "title": "Donation Claimed by NGO",
+    "message": "Hope Shelter NGO has requested your donation 'Surplus Banquet Meals'.",
+    "type": "claim",
+    "is_read": true,
+    "created_at": "2026-10-20 18:30:00"
+  },
+  {
+    "id": 2,
+    "user_id": 4,
+    "role": "admin",
+    "title": "NGO Claim Submitted",
+    "message": "Hope Shelter NGO claimed 'Surplus Banquet Meals' from Grand Hyatt Hotel.",
+    "type": "claim",
+    "is_read": true,
+    "created_at": "2026-10-20 18:30:00"
+  },
+  {
+    "id": 3,
+    "user_id": 2,
+    "role": "ngo",
+    "title": "New Surplus Food Available \ud83c\udf72",
+    "message": "Grand Hyatt Hotel listed 'Surplus Banquet Meals (Buffet)' (45 Portions). Ready to claim!",
+    "type": "donation",
+    "is_read": true,
+    "created_at": "2026-10-20 17:00:00"
+  },
+  {
+    "id": 4,
+    "user_id": 3,
+    "role": "volunteer",
+    "title": "New Pickup Task Available \ud83d\ude9a",
+    "message": "Task available: Downtown Center to Westside Care Center for 45 Portions.",
+    "type": "pickup",
+    "is_read": true,
+    "created_at": "2026-10-20 18:31:00"
+  }
+]

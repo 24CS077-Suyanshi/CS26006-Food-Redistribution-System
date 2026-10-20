@@ -20,6 +20,7 @@ import toast from 'react-hot-toast';
 import axios from 'axios';
 import AIPredictionPage from './AIPredictionPage';
 import HowItWorksTab from '../components/HowItWorksTab';
+import NotificationsTab from '../components/NotificationsTab';
 
 export default function NGODashboard({ donations = [], setDonations, requests = [], setRequests }) {
   const { user, updateUser } = useAuth();
@@ -29,8 +30,12 @@ export default function NGODashboard({ donations = [], setDonations, requests = 
   });
   const [searchQuery, setSearchQuery] = useState('');
   const [profileSaved, setProfileSaved] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const handleSelectTab = (tabId) => {
+    if (tabId === 'notifications') {
+      setUnreadCount(0);
+    }
     if (tabId === activeTab) return;
     setActiveTab(tabId);
     window.history.pushState({ tab: 'dashboard', subTab: tabId }, '', `#dashboard/${tabId}`);
@@ -190,6 +195,7 @@ export default function NGODashboard({ donations = [], setDonations, requests = 
       setActiveTab={handleSelectTab}
       searchQuery={searchQuery}
       setSearchQuery={setSearchQuery}
+      unreadCount={unreadCount}
     >
       {activeTab === 'dashboard' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem', animation: 'fadeIn 0.3s ease-out' }}>
@@ -638,10 +644,11 @@ export default function NGODashboard({ donations = [], setDonations, requests = 
       )}
 
       {activeTab === 'notifications' && (
-        <div style={{ background: 'white', padding: '2rem', borderRadius: '20px', border: '1px solid var(--border-subtle)', animation: 'fadeIn 0.3s ease-out' }}>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-dark)', marginBottom: '1.5rem' }}>Notifications</h2>
-          <p style={{ color: 'var(--text-muted)' }}>You have no new notifications.</p>
-        </div>
+        <NotificationsTab 
+          userRole="ngo" 
+          userId={user?.id || 2} 
+          onUnreadCountChange={setUnreadCount}
+        />
       )}
 
       {activeTab === 'settings' && (

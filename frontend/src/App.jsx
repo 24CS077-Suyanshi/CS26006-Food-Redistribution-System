@@ -62,12 +62,15 @@ function MainAppContent() {
     const hash = window.location.hash.replace('#', '').trim();
     if (hash) {
       const topTab = hash.split('/')[0];
-      if (['home', 'dashboard', 'ai-predictor', 'auth'].includes(topTab)) {
+      if (['dashboard', 'ai-predictor', 'home'].includes(topTab)) {
         return topTab;
+      }
+      if (topTab === 'auth') {
+        return 'auth';
       }
     }
     const saved = localStorage.getItem('frs_activeTab');
-    if (saved && ['home', 'dashboard', 'ai-predictor', 'auth'].includes(saved)) {
+    if (saved && ['dashboard', 'ai-predictor', 'home'].includes(saved)) {
       return saved;
     }
     return 'home';
@@ -76,10 +79,16 @@ function MainAppContent() {
   const [authRole, setAuthRole] = useState('donor');
 
   useEffect(() => {
-    localStorage.setItem('frs_activeTab', activeTab);
+    if (activeTab !== 'auth') {
+      localStorage.setItem('frs_activeTab', activeTab);
+    } else {
+      localStorage.removeItem('frs_activeTab');
+    }
     localStorage.setItem('frs_authMode', authMode);
     localStorage.setItem('frs_authRole', authRole);
+
     if (activeTab === 'dashboard') {
+      // Keep sub-tab in hash (e.g. #dashboard/notifications) intact on refresh
       if (!window.location.hash.startsWith('#dashboard')) {
         window.history.replaceState({ tab: 'dashboard' }, '', '#dashboard');
       }
@@ -108,8 +117,7 @@ function MainAppContent() {
             return;
           }
         }
-        const saved = localStorage.getItem('frs_activeTab');
-        setActiveTab(saved || 'home');
+        setActiveTab('home');
       }
     };
 
@@ -119,7 +127,11 @@ function MainAppContent() {
 
   const changeTab = (newTab) => {
     setActiveTab(newTab);
-    localStorage.setItem('frs_activeTab', newTab);
+    if (newTab !== 'auth') {
+      localStorage.setItem('frs_activeTab', newTab);
+    } else {
+      localStorage.removeItem('frs_activeTab');
+    }
     if (newTab === 'home') {
       window.history.pushState({ tab: 'home' }, '', window.location.pathname);
     } else {
