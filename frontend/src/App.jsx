@@ -7,6 +7,7 @@ import Dashboard from './pages/Dashboard';
 import AIPredictionPage from './pages/AIPredictionPage';
 import { Toaster } from 'react-hot-toast';
 import axios from 'axios';
+import { API_BASE_URL } from './apiConfig';
 
 //Java script object
 const INITIAL_DONATIONS = [
@@ -147,8 +148,8 @@ function MainAppContent() {
     const fetchData = async () => {
       try {
         const [donationsRes, requestsRes] = await Promise.all([
-          axios.get('http://127.0.0.1:5000/api/donations'),
-          axios.get('http://127.0.0.1:5000/api/requests')
+          axios.get(`${API_BASE_URL}/api/donations`),
+          axios.get(`${API_BASE_URL}/api/requests`)
         ]);
         setDonations(donationsRes.data);
         setRequests(requestsRes.data);

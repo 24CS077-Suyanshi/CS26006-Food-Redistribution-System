@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
+import { API_BASE_URL } from '../apiConfig';
 
 const roles = [
   { id: 'donor', label: 'Donor', hint: 'Restaurants, hotels, caterers', icon: Building2 },
@@ -163,7 +164,7 @@ export default function AuthPage({ onLoginSuccess, initialMode = 'login', initia
 
     if (isLogin) {
       try {
-        const response = await axios.post('http://127.0.0.1:5000/api/auth/login', {
+        const response = await axios.post(`${API_BASE_URL}/api/auth/login`, {
           email: normalizedEmail,
           password: password,
           role: role
@@ -186,7 +187,7 @@ export default function AuthPage({ onLoginSuccess, initialMode = 'login', initia
     } else {
       // Register
       try {
-        const response = await axios.post('http://127.0.0.1:5000/api/auth/register', {
+        const response = await axios.post(`${API_BASE_URL}/api/auth/register`, {
           name: formData.name.trim() || 'User',
           email: normalizedEmail,
           password: password,

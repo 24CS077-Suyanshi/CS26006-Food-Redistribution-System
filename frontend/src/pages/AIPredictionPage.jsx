@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Sparkles, Cpu, Clock, Thermometer, AlertTriangle, CheckCircle2, Info, Database } from 'lucide-react';
 import axios from 'axios';
+import { API_BASE_URL } from '../apiConfig';
 
 const foodTypes = [
   { id: 'cooked-rice', label: '🍚 Cooked Rice / Dal', baseHours: 4 },
@@ -77,7 +78,7 @@ export default function AIPredictionPage() {
                           selectedStorage.id === 'cool' ? 'Cool Room' :
                           selectedStorage.id === 'hot' ? 'Hot Storage' : 'Room Temperature';
 
-      const response = await axios.post('http://127.0.0.1:5000/api/ai/predict-freshness', {
+      const response = await axios.post(`${API_BASE_URL}/api/ai/predict-freshness`, {
         food_type: selectedFood.label,
         storage_type: storageName,
         prepared_hours_ago: preparedHoursAgo

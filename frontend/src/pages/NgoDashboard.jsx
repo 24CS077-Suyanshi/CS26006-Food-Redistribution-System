@@ -21,6 +21,7 @@ import axios from 'axios';
 import AIPredictionPage from './AIPredictionPage';
 import HowItWorksTab from '../components/HowItWorksTab';
 import NotificationsTab from '../components/NotificationsTab';
+import { API_BASE_URL } from '../apiConfig';
 
 export default function NGODashboard({ donations = [], setDonations, requests = [], setRequests }) {
   const { user, updateUser } = useAuth();
@@ -80,7 +81,7 @@ export default function NGODashboard({ donations = [], setDonations, requests = 
   const [feedbackList, setFeedbackList] = useState([]);
 
   useEffect(() => {
-    axios.get('http://127.0.0.1:5000/api/feedback')
+    axios.get(`${API_BASE_URL}/api/feedback`)
       .then(res => {
         if (res.data && Array.isArray(res.data)) {
           setFeedbackList(res.data);
@@ -108,7 +109,7 @@ export default function NGODashboard({ donations = [], setDonations, requests = 
     if (!feedbackClaim) return;
 
     try {
-      const res = await axios.post('http://127.0.0.1:5000/api/feedback', {
+      const res = await axios.post(`${API_BASE_URL}/api/feedback`, {
         donation_id: feedbackClaim.donation_id,
         from_user_id: user?.id || 2,
         user_name: user?.name || 'Hope Shelter NGO',
@@ -168,7 +169,7 @@ export default function NGODashboard({ donations = [], setDonations, requests = 
     const loadingToast = toast.loading(`Submitting claim for ${title}...`);
     
     try {
-      const response = await axios.post('http://127.0.0.1:5000/api/requests', {
+      const response = await axios.post(`${API_BASE_URL}/api/requests`, {
         donation_id: donationId,
         ngo_name: user?.name || 'NGO User',
         ngo_id: user?.id || 2,

@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { API_BASE_URL } from '../apiConfig';
 
 export default function NotificationsTab({ userRole = 'donor', userId = 1, onUnreadCountChange }) {
   const [notifications, setNotifications] = useState([]);
@@ -22,7 +23,7 @@ export default function NotificationsTab({ userRole = 'donor', userId = 1, onUnr
 
   const fetchNotifications = async () => {
     try {
-      const res = await axios.get(`http://127.0.0.1:5000/api/notifications?role=${userRole}&user_id=${userId}`);
+      const res = await axios.get(`${API_BASE_URL}/api/notifications?role=${userRole}&user_id=${userId}`);
       if (Array.isArray(res.data)) {
         setNotifications(res.data);
         const unread = res.data.filter(n => !n.is_read).length;
@@ -41,7 +42,7 @@ export default function NotificationsTab({ userRole = 'donor', userId = 1, onUnr
     // Immediately mark notifications read when viewing this tab so badge clears instantly
     const markAsRead = async () => {
       try {
-        await axios.put('http://127.0.0.1:5000/api/notifications/mark-read', {
+        await axios.put(`${API_BASE_URL}/api/notifications/mark-read`, {
           user_id: userId,
           role: userRole
         });
@@ -63,7 +64,7 @@ export default function NotificationsTab({ userRole = 'donor', userId = 1, onUnr
 
   const handleMarkAllRead = async () => {
     try {
-      await axios.put('http://127.0.0.1:5000/api/notifications/mark-read', {
+      await axios.put(`${API_BASE_URL}/api/notifications/mark-read`, {
         user_id: userId,
         role: userRole
       });
@@ -77,7 +78,7 @@ export default function NotificationsTab({ userRole = 'donor', userId = 1, onUnr
 
   const handleMarkSingleRead = async (id) => {
     try {
-      await axios.put('http://127.0.0.1:5000/api/notifications/mark-read', { id });
+      await axios.put(`${API_BASE_URL}/api/notifications/mark-read`, { id });
       setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
       const remainingUnread = notifications.filter(n => n.id !== id && !n.is_read).length;
       if (onUnreadCountChange) onUnreadCountChange(remainingUnread);

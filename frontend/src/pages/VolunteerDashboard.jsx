@@ -24,6 +24,7 @@ import axios from 'axios';
 import AIPredictionPage from './AIPredictionPage';
 import HowItWorksTab from '../components/HowItWorksTab';
 import NotificationsTab from '../components/NotificationsTab';
+import { API_BASE_URL } from '../apiConfig';
 
 export default function VolunteerDashboard({ requests = [], setRequests, donations = [], setDonations }) {
   const { user, updateUser } = useAuth();
@@ -89,8 +90,8 @@ export default function VolunteerDashboard({ requests = [], setRequests, donatio
     const refreshData = async () => {
       try {
         const [reqRes, donRes] = await Promise.all([
-          axios.get('http://127.0.0.1:5000/api/requests'),
-          axios.get('http://127.0.0.1:5000/api/donations')
+          axios.get(`${API_BASE_URL}/api/requests`),
+          axios.get(`${API_BASE_URL}/api/donations`)
         ]);
         if (setRequests && Array.isArray(reqRes.data)) setRequests(reqRes.data);
         if (setDonations && Array.isArray(donRes.data)) setDonations(donRes.data);
@@ -148,7 +149,7 @@ export default function VolunteerDashboard({ requests = [], setRequests, donatio
       let taskId = id;
       if (String(id).startsWith('don_')) {
         const donationId = Number(String(id).replace('don_', ''));
-        const createRes = await axios.post('http://127.0.0.1:5000/api/requests', {
+        const createRes = await axios.post(`${API_BASE_URL}/api/requests`, {
           donation_id: donationId,
           ngo_name: 'Hope Shelter NGO',
           ngo_id: 2,
@@ -157,7 +158,7 @@ export default function VolunteerDashboard({ requests = [], setRequests, donatio
         taskId = createRes.data?.request?.id || donationId;
       }
 
-      const response = await axios.put(`http://127.0.0.1:5000/api/requests/${taskId}/accept`, {
+      const response = await axios.put(`${API_BASE_URL}/api/requests/${taskId}/accept`, {
         volunteer_id: user?.id || 3,
         volunteer_name: user?.name || 'Alex Smith'
       });
@@ -209,7 +210,7 @@ export default function VolunteerDashboard({ requests = [], setRequests, donatio
     const loadingToast = toast.loading('Verifying pickup OTP with NGO...');
 
     try {
-      const response = await axios.post(`http://127.0.0.1:5000/api/requests/${selectedTask.id}/verify-otp`, {
+      const response = await axios.post(`${API_BASE_URL}/api/requests/${selectedTask.id}/verify-otp`, {
         otp: otpInput.trim()
       });
 

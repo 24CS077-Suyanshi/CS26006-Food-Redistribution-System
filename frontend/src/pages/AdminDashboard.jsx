@@ -40,6 +40,7 @@ import axios from 'axios';
 import AIPredictionPage from './AIPredictionPage';
 import HowItWorksTab from '../components/HowItWorksTab';
 import NotificationsTab from '../components/NotificationsTab';
+import { API_BASE_URL } from '../apiConfig';
 
 // Initial fallback users when offline
 const FALLBACK_USERS = [
@@ -190,10 +191,10 @@ export default function AdminDashboard({
     const fetchAdminData = async () => {
       try {
         const [usersRes, actRes, setRes, fbRes] = await Promise.all([
-          axios.get('http://127.0.0.1:5000/api/admin/users').catch(() => null),
-          axios.get('http://127.0.0.1:5000/api/admin/activities').catch(() => null),
-          axios.get('http://127.0.0.1:5000/api/admin/settings').catch(() => null),
-          axios.get('http://127.0.0.1:5000/api/feedback').catch(() => null)
+          axios.get(`${API_BASE_URL}/api/admin/users`).catch(() => null),
+          axios.get(`${API_BASE_URL}/api/admin/activities`).catch(() => null),
+          axios.get(`${API_BASE_URL}/api/admin/settings`).catch(() => null),
+          axios.get(`${API_BASE_URL}/api/feedback`).catch(() => null)
         ]);
 
         if (usersRes && usersRes.data) setUsers(usersRes.data);
@@ -269,7 +270,7 @@ export default function AdminDashboard({
   const handleDeleteFeedback = async (id) => {
     if (!window.confirm("Are you sure you want to remove this feedback from the platform?")) return;
     try {
-      await axios.delete(`http://127.0.0.1:5000/api/feedback/${id}`);
+      await axios.delete(`${API_BASE_URL}/api/feedback/${id}`);
     } catch (_) {}
     setFeedbacks(prev => prev.filter(f => f.id !== id));
     toast.success("Feedback review removed.");
@@ -282,7 +283,7 @@ export default function AdminDashboard({
     const newStatus = !target.is_verified;
 
     try {
-      await axios.put(`http://127.0.0.1:5000/api/admin/users/${userId}`, {
+      await axios.put(`${API_BASE_URL}/api/admin/users/${userId}`, {
         is_verified: newStatus
       });
     } catch (_) {}
@@ -299,7 +300,7 @@ export default function AdminDashboard({
     }
 
     try {
-      const res = await axios.post('http://127.0.0.1:5000/api/admin/users', newUserForm);
+      const res = await axios.post(`${API_BASE_URL}/api/admin/users`, newUserForm);
       if (res?.data?.user) {
         setUsers(prev => [res.data.user, ...prev]);
       } else {
@@ -337,7 +338,7 @@ export default function AdminDashboard({
     if (!selectedUser) return;
 
     try {
-      await axios.put(`http://127.0.0.1:5000/api/admin/users/${selectedUser.id}`, selectedUser);
+      await axios.put(`${API_BASE_URL}/api/admin/users/${selectedUser.id}`, selectedUser);
     } catch (_) {}
 
     setUsers(prev => prev.map(u => u.id === selectedUser.id ? selectedUser : u));
@@ -353,7 +354,7 @@ export default function AdminDashboard({
     if (!window.confirm(`Are you sure you want to permanently delete user "${userName}"?`)) return;
 
     try {
-      await axios.delete(`http://127.0.0.1:5000/api/admin/users/${userId}`);
+      await axios.delete(`${API_BASE_URL}/api/admin/users/${userId}`);
     } catch (_) {}
 
     setUsers(prev => prev.filter(u => u.id !== userId));
@@ -363,7 +364,7 @@ export default function AdminDashboard({
   // Donation Moderation Actions
   const handleUpdateDonationStatus = async (donationId, newStatus) => {
     try {
-      await axios.put(`http://127.0.0.1:5000/api/admin/donations/${donationId}/status`, {
+      await axios.put(`${API_BASE_URL}/api/admin/donations/${donationId}/status`, {
         status: newStatus
       });
     } catch (_) {}
@@ -381,7 +382,7 @@ export default function AdminDashboard({
     if (!window.confirm(`Are you sure you want to delete listing "${donationTitle}"?`)) return;
 
     try {
-      await axios.delete(`http://127.0.0.1:5000/api/admin/donations/${donationId}`);
+      await axios.delete(`${API_BASE_URL}/api/admin/donations/${donationId}`);
     } catch (_) {}
 
     if (setDonations) {
@@ -394,7 +395,7 @@ export default function AdminDashboard({
   // Request Moderation Action
   const handleUpdateRequestStatus = async (requestId, newStatus) => {
     try {
-      await axios.put(`http://127.0.0.1:5000/api/admin/requests/${requestId}/status`, {
+      await axios.put(`${API_BASE_URL}/api/admin/requests/${requestId}/status`, {
         status: newStatus
       });
     } catch (_) {}
@@ -409,7 +410,7 @@ export default function AdminDashboard({
   const handleSaveBroadcast = async (e) => {
     e.preventDefault();
     try {
-      await axios.put('http://127.0.0.1:5000/api/admin/settings', {
+      await axios.put(`${API_BASE_URL}/api/admin/settings`, {
         emergency_broadcast: broadcastMessage,
         broadcast_active: broadcastActive
       });

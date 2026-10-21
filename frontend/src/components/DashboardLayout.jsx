@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { LogOut, Search, Bell, Menu, X, ChevronRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { API_BASE_URL } from '../apiConfig';
 
 export default function DashboardLayout({ 
   children, 
@@ -21,7 +22,7 @@ export default function DashboardLayout({
     try {
       localStorage.setItem('frs_viewed_notifs_at', Date.now().toString());
     } catch (_) {}
-    fetch('http://127.0.0.1:5000/api/notifications/mark-read', {
+    fetch(`${API_BASE_URL}/api/notifications/mark-read`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ role: user?.role, user_id: user?.id })
@@ -35,7 +36,7 @@ export default function DashboardLayout({
     }
     const fetchUnread = async () => {
       try {
-        const res = await fetch(`http://127.0.0.1:5000/api/notifications?role=${user?.role || 'donor'}&user_id=${user?.id || 1}`);
+        const res = await fetch(`${API_BASE_URL}/api/notifications?role=${user?.role || 'donor'}&user_id=${user?.id || 1}`);
         if (res.ok) {
           const data = await res.json();
           if (Array.isArray(data)) {

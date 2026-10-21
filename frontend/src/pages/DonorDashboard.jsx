@@ -23,6 +23,7 @@ import axios from 'axios';
 import AIPredictionPage from './AIPredictionPage';
 import HowItWorksTab from '../components/HowItWorksTab';
 import NotificationsTab from '../components/NotificationsTab';
+import { API_BASE_URL } from '../apiConfig';
 
 export default function DonorDashboard({ donations = [], setDonations, requests = [], setRequests }) {
   const { user, updateUser } = useAuth();
@@ -39,7 +40,7 @@ export default function DonorDashboard({ donations = [], setDonations, requests 
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
-    axios.get('http://127.0.0.1:5000/api/feedback')
+    axios.get(`${API_BASE_URL}/api/feedback`)
       .then(res => {
         if (res.data && Array.isArray(res.data)) {
           setFeedbacks(res.data);
@@ -119,7 +120,7 @@ export default function DonorDashboard({ donations = [], setDonations, requests 
   const handleRunAiPrediction = async () => {
     setAiPredicting(true);
     try {
-      const res = await axios.post('http://127.0.0.1:5000/api/ai/predict-freshness', {
+      const res = await axios.post(`${API_BASE_URL}/api/ai/predict-freshness`, {
         food_type: formData.title || formData.category,
         storage_type: formData.storageType,
         prepared_hours_ago: 1.0
@@ -167,7 +168,7 @@ export default function DonorDashboard({ donations = [], setDonations, requests 
     };
 
     try {
-      const response = await axios.post('http://127.0.0.1:5000/api/donations', newDonationData);
+      const response = await axios.post(`${API_BASE_URL}/api/donations`, newDonationData);
       
       if (setDonations) setDonations([response.data.donation, ...donations]);
       setShowModal(false);
