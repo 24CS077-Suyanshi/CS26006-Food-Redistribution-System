@@ -59,12 +59,24 @@
 html {
   scroll-behavior: smooth;
   width: 100%;
-  font-size: 18px;
+  font-size: 16px;
+}
+
+@media (max-width: 1024px) {
+  html {
+    font-size: 15px;
+  }
 }
 
 @media (max-width: 640px) {
   html {
-    font-size: 16.5px;
+    font-size: 13.5px;
+  }
+}
+
+@media (max-width: 380px) {
+  html {
+    font-size: 12.5px;
   }
 }
 
@@ -72,9 +84,9 @@ body {
   font-family: var(--font-sans);
   background-color: var(--bg-page);
   color: var(--text-main);
-  line-height: 1.6;
-  font-size: 1.05rem;
-  font-weight: 700;
+  line-height: 1.5;
+  font-size: 1rem;
+  font-weight: 500;
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
   width: 100%;
@@ -3478,5 +3490,36 @@ html, body, #root, .app-container {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
+
+/* Mobile Screen Dimensional Adjustments (< 640px) */
+@media (max-width: 640px) {
+  .dashboard-container {
+    padding: 0.5rem 0.4rem !important;
+  }
+  .dashboard-main-content {
+    padding: 0.75rem !important;
+  }
+  .dashboard-card {
+    padding: 1rem !important;
+    border-radius: 16px !important;
+  }
+  .hero-section-clean {
+    padding: 2.25rem 0 2.5rem !important;
+  }
+  .hero-inner-container {
+    padding: 0 1rem !important;
+    gap: 1.5rem !important;
+  }
+  .hero-title-clean {
+    font-size: 2.1rem !important;
+  }
+  .hero-subtitle-clean {
+    font-size: 0.95rem !important;
+  }
+  .navbar {
+    padding: 0.6rem 0.85rem !important;
+  }
+}
+
 
 

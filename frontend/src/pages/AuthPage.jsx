@@ -240,21 +240,21 @@ export default function AuthPage({ onLoginSuccess, initialMode = 'login', initia
   };
 
   return (
-    <section className="mx-auto flex w-full max-w-xl flex-col px-4 py-12">
-      <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xl md:p-8">
+    <section className="mx-auto flex w-full max-w-xl flex-col px-3 py-4 sm:px-4 sm:py-10">
+      <div className="rounded-2xl sm:rounded-3xl border border-slate-200 bg-white p-4 sm:p-6 shadow-xl md:p-8">
         {/* Brand Header */}
-        <div className="flex items-center gap-2.5 mb-6">
-          <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-600 text-white shadow-xs">
-            <Utensils size={20} />
+        <div className="flex items-center gap-2 mb-4 sm:mb-6">
+          <span className="inline-flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-lg sm:rounded-xl bg-emerald-600 text-white shadow-xs">
+            <Utensils size={18} />
           </span>
-          <span className="text-lg font-black tracking-tight text-slate-900">Food Redistribution System</span>
+          <span className="text-base sm:text-lg font-black tracking-tight text-slate-900">Food Redistribution System</span>
         </div>
 
-        <header className="mb-6">
-          <h1 className="text-2xl font-black text-slate-900 md:text-3xl">
+        <header className="mb-4 sm:mb-6">
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900 md:text-3xl">
             {isLogin ? 'Login' : 'Create Account'}
           </h1>
-          <p className="mt-1 text-sm font-semibold text-slate-600">
+          <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm font-semibold text-slate-600">
             {isLogin
               ? 'Login to your Food Redistribution System account.'
               : 'Join the Food Redistribution System.'}
@@ -262,8 +262,8 @@ export default function AuthPage({ onLoginSuccess, initialMode = 'login', initia
         </header>
 
         {/* Role Selector */}
-        <div className="mb-6">
-          <p className="mb-2 text-xs font-bold uppercase tracking-wider text-slate-500">Select Role</p>
+        <div className="mb-4 sm:mb-6">
+          <p className="mb-1.5 sm:mb-2 text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-500">Select Role</p>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {roles.map((item) => {
               const Icon = item.icon;
@@ -273,14 +273,14 @@ export default function AuthPage({ onLoginSuccess, initialMode = 'login', initia
                   key={item.id}
                   type="button"
                   onClick={() => setRole(item.id)}
-                  className={`flex flex-col items-center justify-center rounded-2xl border-2 p-3 text-center transition-all ${
+                  className={`flex flex-col items-center justify-center rounded-xl sm:rounded-2xl border-2 p-2 sm:p-3 text-center transition-all ${
                     active
                       ? 'border-emerald-600 bg-emerald-50 text-emerald-800 font-extrabold shadow-xs'
                       : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
                   }`}
                 >
-                  <Icon size={20} className={active ? 'text-emerald-600' : 'text-slate-500'} />
-                  <span className="mt-1.5 text-sm font-extrabold">{item.label}</span>
+                  <Icon size={18} className={active ? 'text-emerald-600' : 'text-slate-500'} />
+                  <span className="mt-1 text-xs sm:text-sm font-bold sm:font-extrabold">{item.label}</span>
                 </button>
               );
             })}
@@ -288,17 +288,17 @@ export default function AuthPage({ onLoginSuccess, initialMode = 'login', initia
         </div>
 
         {validationError && (
-          <div className="mb-4 flex items-center gap-2 rounded-xl bg-red-50 p-3 text-sm font-semibold text-red-700 border border-red-200">
+          <div className="mb-3 sm:mb-4 flex items-center gap-2 rounded-xl bg-red-50 p-2.5 sm:p-3 text-xs sm:text-sm font-semibold text-red-700 border border-red-200">
             <AlertCircle size={16} />
             <span>{validationError}</span>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-3 sm:gap-4">
           {!isLogin && (
-            <label className="flex flex-col gap-1 text-xs font-bold uppercase tracking-wider text-slate-700">
+            <label className="flex flex-col gap-1 text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-700">
               <span>Full Name</span>
-              <div className="flex items-center gap-2 rounded-xl border border-slate-300 bg-slate-50/50 px-3.5 py-2.5 focus-within:border-emerald-600 focus-within:bg-white focus-within:ring-2 focus-within:ring-emerald-500/20">
+              <div className="flex items-center gap-2 rounded-xl border border-slate-300 bg-slate-50/50 px-3 py-2 sm:px-3.5 sm:py-2.5 focus-within:border-emerald-600 focus-within:bg-white focus-within:ring-2 focus-within:ring-emerald-500/20">
                 <User size={18} className="text-slate-400" />
                 <input
                   type="text"
@@ -306,19 +306,19 @@ export default function AuthPage({ onLoginSuccess, initialMode = 'login', initia
                   value={formData.name}
                   placeholder={role === 'donor' ? 'e.g. Grand Hyatt Hotel' : role === 'ngo' ? 'e.g. Hope Shelter NGO' : 'e.g. Alex Smith'}
                   onChange={(e) => updateField('name', e.target.value)}
-                  className="w-full bg-transparent text-sm font-semibold text-slate-900 focus:outline-none"
+                  className="w-full bg-transparent text-xs sm:text-sm font-semibold text-slate-900 focus:outline-none"
                 />
               </div>
             </label>
           )}
 
           {!isLogin && role === 'donor' && (
-            <label className="flex flex-col gap-1 text-xs font-bold uppercase tracking-wider text-slate-700">
+            <label className="flex flex-col gap-1 text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-700">
               <span>Organization Type</span>
               <select
                 value={formData.organizationType}
                 onChange={(e) => updateField('organizationType', e.target.value)}
-                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-900 focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 sm:px-3.5 sm:py-2.5 text-xs sm:text-sm font-semibold text-slate-900 focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
               >
                 {donorOrgTypes.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
@@ -326,21 +326,21 @@ export default function AuthPage({ onLoginSuccess, initialMode = 'login', initia
           )}
 
           {!isLogin && role === 'ngo' && (
-            <label className="flex flex-col gap-1 text-xs font-bold uppercase tracking-wider text-slate-700">
+            <label className="flex flex-col gap-1 text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-700">
               <span>Organization Type</span>
               <select
                 value={formData.organizationType}
                 onChange={(e) => updateField('organizationType', e.target.value)}
-                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-900 focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 sm:px-3.5 sm:py-2.5 text-xs sm:text-sm font-semibold text-slate-900 focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
               >
                 {ngoOrgTypes.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
             </label>
           )}
 
-          <label className="flex flex-col gap-1 text-xs font-bold uppercase tracking-wider text-slate-700">
+          <label className="flex flex-col gap-1 text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-700">
             <span>Email Address</span>
-            <div className="flex items-center gap-2 rounded-xl border border-slate-300 bg-slate-50/50 px-3.5 py-2.5 focus-within:border-emerald-600 focus-within:bg-white focus-within:ring-2 focus-within:ring-emerald-500/20">
+            <div className="flex items-center gap-2 rounded-xl border border-slate-300 bg-slate-50/50 px-3 py-2 sm:px-3.5 sm:py-2.5 focus-within:border-emerald-600 focus-within:bg-white focus-within:ring-2 focus-within:ring-emerald-500/20">
               <Mail size={18} className="text-slate-400" />
               <input
                 type="email"
@@ -348,15 +348,15 @@ export default function AuthPage({ onLoginSuccess, initialMode = 'login', initia
                 value={formData.email}
                 placeholder="name@email.com"
                 onChange={(e) => updateField('email', e.target.value)}
-                className="w-full bg-transparent text-sm font-semibold text-slate-900 focus:outline-none"
+                className="w-full bg-transparent text-xs sm:text-sm font-semibold text-slate-900 focus:outline-none"
               />
             </div>
           </label>
 
           {!isLogin && (
-            <label className="flex flex-col gap-1 text-xs font-bold uppercase tracking-wider text-slate-700">
+            <label className="flex flex-col gap-1 text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-700">
               <span>Phone Number</span>
-              <div className="flex items-center gap-2 rounded-xl border border-slate-300 bg-slate-50/50 px-3.5 py-2.5 focus-within:border-emerald-600 focus-within:bg-white focus-within:ring-2 focus-within:ring-emerald-500/20">
+              <div className="flex items-center gap-2 rounded-xl border border-slate-300 bg-slate-50/50 px-3 py-2 sm:px-3.5 sm:py-2.5 focus-within:border-emerald-600 focus-within:bg-white focus-within:ring-2 focus-within:ring-emerald-500/20">
                 <Phone size={18} className="text-slate-400" />
                 <input
                   type="tel"
@@ -364,16 +364,16 @@ export default function AuthPage({ onLoginSuccess, initialMode = 'login', initia
                   value={formData.phone}
                   placeholder="+91 98765 43210"
                   onChange={(e) => updateField('phone', e.target.value)}
-                  className="w-full bg-transparent text-sm font-semibold text-slate-900 focus:outline-none"
+                  className="w-full bg-transparent text-xs sm:text-sm font-semibold text-slate-900 focus:outline-none"
                 />
               </div>
             </label>
           )}
 
           {!isLogin && (
-            <label className="flex flex-col gap-1 text-xs font-bold uppercase tracking-wider text-slate-700">
+            <label className="flex flex-col gap-1 text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-700">
               <span>Address</span>
-              <div className="flex items-center gap-2 rounded-xl border border-slate-300 bg-slate-50/50 px-3.5 py-2.5 focus-within:border-emerald-600 focus-within:bg-white focus-within:ring-2 focus-within:ring-emerald-500/20">
+              <div className="flex items-center gap-2 rounded-xl border border-slate-300 bg-slate-50/50 px-3 py-2 sm:px-3.5 sm:py-2.5 focus-within:border-emerald-600 focus-within:bg-white focus-within:ring-2 focus-within:ring-emerald-500/20">
                 <MapPin size={18} className="text-slate-400" />
                 <input
                   type="text"
@@ -381,15 +381,15 @@ export default function AuthPage({ onLoginSuccess, initialMode = 'login', initia
                   value={formData.address}
                   placeholder="Enter full address"
                   onChange={(e) => updateField('address', e.target.value)}
-                  className="w-full bg-transparent text-sm font-semibold text-slate-900 focus:outline-none"
+                  className="w-full bg-transparent text-xs sm:text-sm font-semibold text-slate-900 focus:outline-none"
                 />
               </div>
             </label>
           )}
 
-          <label className="flex flex-col gap-1 text-xs font-bold uppercase tracking-wider text-slate-700">
+          <label className="flex flex-col gap-1 text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-700">
             <span>Password</span>
-            <div className="flex items-center gap-2 rounded-xl border border-slate-300 bg-slate-50/50 px-3.5 py-2.5 focus-within:border-emerald-600 focus-within:bg-white focus-within:ring-2 focus-within:ring-emerald-500/20">
+            <div className="flex items-center gap-2 rounded-xl border border-slate-300 bg-slate-50/50 px-3 py-2 sm:px-3.5 sm:py-2.5 focus-within:border-emerald-600 focus-within:bg-white focus-within:ring-2 focus-within:ring-emerald-500/20">
               <Lock size={18} className="text-slate-400" />
               <input
                 type={showPassword ? 'text' : 'password'}
@@ -397,7 +397,7 @@ export default function AuthPage({ onLoginSuccess, initialMode = 'login', initia
                 value={formData.password}
                 placeholder="Enter password"
                 onChange={(e) => updateField('password', e.target.value)}
-                className="w-full bg-transparent text-sm font-semibold text-slate-900 focus:outline-none"
+                className="w-full bg-transparent text-xs sm:text-sm font-semibold text-slate-900 focus:outline-none"
               />
               <button
                 type="button"
@@ -410,9 +410,9 @@ export default function AuthPage({ onLoginSuccess, initialMode = 'login', initia
           </label>
 
           {!isLogin && (
-            <label className="flex flex-col gap-1 text-xs font-bold uppercase tracking-wider text-slate-700">
+            <label className="flex flex-col gap-1 text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-700">
               <span>Confirm Password</span>
-              <div className="flex items-center gap-2 rounded-xl border border-slate-300 bg-slate-50/50 px-3.5 py-2.5 focus-within:border-emerald-600 focus-within:bg-white focus-within:ring-2 focus-within:ring-emerald-500/20">
+              <div className="flex items-center gap-2 rounded-xl border border-slate-300 bg-slate-50/50 px-3 py-2 sm:px-3.5 sm:py-2.5 focus-within:border-emerald-600 focus-within:bg-white focus-within:ring-2 focus-within:ring-emerald-500/20">
                 <Lock size={18} className="text-slate-400" />
                 <input
                   type={showPassword ? 'text' : 'password'}
@@ -420,14 +420,14 @@ export default function AuthPage({ onLoginSuccess, initialMode = 'login', initia
                   value={formData.confirmPassword}
                   placeholder="Re-enter password"
                   onChange={(e) => updateField('confirmPassword', e.target.value)}
-                  className="w-full bg-transparent text-sm font-semibold text-slate-900 focus:outline-none"
+                  className="w-full bg-transparent text-xs sm:text-sm font-semibold text-slate-900 focus:outline-none"
                 />
               </div>
             </label>
           )}
 
           {isLogin && (
-            <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center justify-between text-xs sm:text-sm">
               <label className="flex items-center gap-2 font-semibold text-slate-700">
                 <input
                   type="checkbox"
@@ -450,7 +450,7 @@ export default function AuthPage({ onLoginSuccess, initialMode = 'login', initia
           <button
             type="submit"
             disabled={loading}
-            className="mt-2 inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-6 py-3 text-base font-extrabold text-white shadow-md transition hover:bg-emerald-700 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+            className="mt-1 sm:mt-2 inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 sm:py-3 text-sm sm:text-base font-extrabold text-white shadow-md transition hover:bg-emerald-700 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {loading ? (
               <>
@@ -467,12 +467,12 @@ export default function AuthPage({ onLoginSuccess, initialMode = 'login', initia
           <button
             type="button"
             onClick={handleDemoAccess}
-            className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-emerald-500 bg-emerald-50/80 px-4 py-2.5 text-sm font-black text-emerald-800 transition hover:bg-emerald-100 cursor-pointer"
+            className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-emerald-500 bg-emerald-50/80 px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm font-black text-emerald-800 transition hover:bg-emerald-100 cursor-pointer"
           >
             ⚡ 1-Click Demo Login as {role.toUpperCase()}
           </button>
 
-          <div className="mt-2 text-center text-sm font-semibold text-slate-600">
+          <div className="mt-1 sm:mt-2 text-center text-xs sm:text-sm font-semibold text-slate-600">
             {isLogin ? "Don't have an account? " : 'Already have an account? '}
             <button
               type="button"
