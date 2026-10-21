@@ -499,18 +499,14 @@ export default function AdminDashboard({
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem', animation: 'fadeIn 0.3s ease-out' }}>
           
           {/* Header Hero */}
-          <div style={{
-            background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #334155 100%)',
-            borderRadius: '24px',
-            padding: '2.25rem 2.5rem',
-            color: 'white',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            boxShadow: 'var(--shadow-card)',
-            position: 'relative',
-            overflow: 'hidden'
-          }}>
+          <div 
+            className="dashboard-banner-responsive"
+            style={{
+              background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #334155 100%)',
+              position: 'relative',
+              overflow: 'hidden'
+            }}
+          >
             <div style={{ position: 'relative', zIndex: 2 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.4rem' }}>
                 <span style={{ 

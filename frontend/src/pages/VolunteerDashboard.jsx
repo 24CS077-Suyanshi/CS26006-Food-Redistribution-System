@@ -248,17 +248,13 @@ export default function VolunteerDashboard({ requests = [], setRequests, donatio
       unreadCount={unreadCount}
     >
       {activeTab === 'dashboard' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem', animation: 'fadeIn 0.3s ease-out' }}>
-          <div style={{
-            background: 'linear-gradient(135deg, #2E1065 0%, #7C3AED 100%)',
-            borderRadius: '20px',
-            padding: '2.25rem 2.5rem',
-            color: 'white',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            boxShadow: 'var(--shadow-card)'
-          }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', animation: 'fadeIn 0.3s ease-out' }}>
+          <div 
+            className="dashboard-banner-responsive"
+            style={{
+              background: 'linear-gradient(135deg, #2E1065 0%, #7C3AED 100%)'
+            }}
+          >
             <div>
               <span style={{ fontSize: '0.8rem', color: '#DDD6FE', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                 VOLUNTEER DASHBOARD
