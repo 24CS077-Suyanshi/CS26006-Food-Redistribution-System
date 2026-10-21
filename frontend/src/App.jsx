@@ -58,33 +58,41 @@ const INITIAL_DONATIONS = [
 //when user login set the user in local storage
 function MainAppContent() {
   const { user } = useAuth();
-  // Restore activeTab from URL hash or localStorage so refresh stays on the same page
+  
+  // Clean up any stale activeTab from past sessions so initial visit always opens Home Page
+  useEffect(() => {
+    try {
+      localStorage.removeItem('frs_activeTab');
+    } catch (_) {}
+  }, []);
+
+  // Default to 'home' on initial website visit, unless explicit hash requested
   const [activeTab, setActiveTab] = useState(() => {
     const hash = window.location.hash.replace('#', '').trim();
     if (hash) {
       const topTab = hash.split('/')[0];
-      if (['dashboard', 'ai-predictor', 'home'].includes(topTab)) {
+      if (topTab === 'dashboard' && user) {
+        return 'dashboard';
+      }
+      if (['ai-predictor', 'auth'].includes(topTab)) {
         return topTab;
       }
-      if (topTab === 'auth') {
-        return 'auth';
-      }
     }
-    const saved = localStorage.getItem('frs_activeTab');
-    if (saved && ['dashboard', 'ai-predictor', 'home'].includes(saved)) {
-      return saved;
-    }
+    // Always default to 'home'
     return 'home';
   });
   const [authMode, setAuthMode] = useState('login');
   const [authRole, setAuthRole] = useState('donor');
 
+  // If user logs out or is not logged in while activeTab is dashboard, redirect to home
   useEffect(() => {
-    if (activeTab !== 'auth') {
-      localStorage.setItem('frs_activeTab', activeTab);
-    } else {
-      localStorage.removeItem('frs_activeTab');
+    if (!user && activeTab === 'dashboard') {
+      setActiveTab('home');
+      window.history.replaceState({ tab: 'home' }, '', window.location.pathname);
     }
+  }, [user, activeTab]);
+
+  useEffect(() => {
     localStorage.setItem('frs_authMode', authMode);
     localStorage.setItem('frs_authRole', authRole);
 
@@ -128,11 +136,6 @@ function MainAppContent() {
 
   const changeTab = (newTab) => {
     setActiveTab(newTab);
-    if (newTab !== 'auth') {
-      localStorage.setItem('frs_activeTab', newTab);
-    } else {
-      localStorage.removeItem('frs_activeTab');
-    }
     if (newTab === 'home') {
       window.history.pushState({ tab: 'home' }, '', window.location.pathname);
     } else {
