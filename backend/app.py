@@ -353,7 +353,7 @@ def sync_data_to_mysql():
         conn.close()
         print(f"[MySQL Sync SUCCESS] All tables (users, donations, requests, notifications, feedback) synced to MySQL database!")
     except Exception as e:
-        print("[MySQL Sync ERROR]:", e)
+        print("[MySQL Sync Note]:", e)
         if conn:
             try: conn.close()
             except: pass

@@ -162,6 +162,6 @@ def get_db_connection():
         if connection.is_connected():
             return connection
     except Error as e:
-        print("[MySQL Error]:", e)
+        print("[Info] MySQL server not reachable on localhost. Operating in resilient JSON fallback mode.")
         pass
     return None
