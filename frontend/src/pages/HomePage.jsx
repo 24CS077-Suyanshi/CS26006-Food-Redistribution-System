@@ -444,7 +444,7 @@ export default function HomePage({ onOpenAuth }) {
             <Phone className="text-emerald-600" size={20} />
             <p className="mt-3 text-xs font-semibold uppercase tracking-wider text-slate-500">Phone</p>
             {/* REPLACE WITH REAL PHONE LATER */}
-            <p className="mt-1 text-sm font-bold text-slate-800">+91 87659 84532</p>
+            <p className="mt-1 text-sm font-bold text-slate-800">+91 00000 00000</p>
           </article>
           <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
             <MapPin className="text-emerald-600" size={20} />
