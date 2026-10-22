@@ -3,10 +3,15 @@ import React, { createContext, useState, useEffect, useContext } from 'react';
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  // Restore user and token from localStorage so refresh stays logged in
+  // Restore user and token from sessionStorage (clears automatically when tab/browser closes)
   const [user, setUser] = useState(() => {
     try {
-      const savedUser = localStorage.getItem('frs_user');
+      // Clean up any legacy persistent localStorage session
+      localStorage.removeItem('frs_user');
+      localStorage.removeItem('frs_token');
+      localStorage.removeItem('frs_activeTab');
+
+      const savedUser = sessionStorage.getItem('frs_user');
       return savedUser ? JSON.parse(savedUser) : null;
     } catch (_) {
       return null;
@@ -15,7 +20,7 @@ export const AuthProvider = ({ children }) => {
 
   const [token, setToken] = useState(() => {
     try {
-      return localStorage.getItem('frs_token') || null;
+      return sessionStorage.getItem('frs_token') || null;
     } catch (_) {
       return null;
     }
@@ -25,8 +30,8 @@ export const AuthProvider = ({ children }) => {
     setUser(userData);
     setToken(userToken);
     try {
-      localStorage.setItem('frs_user', JSON.stringify(userData));
-      if (userToken) localStorage.setItem('frs_token', userToken);
+      sessionStorage.setItem('frs_user', JSON.stringify(userData));
+      if (userToken) sessionStorage.setItem('frs_token', userToken);
     } catch (_) {}
   };
 
@@ -34,7 +39,7 @@ export const AuthProvider = ({ children }) => {
     const updatedUser = { ...user, ...fields };
     setUser(updatedUser);
     try {
-      localStorage.setItem('frs_user', JSON.stringify(updatedUser));
+      sessionStorage.setItem('frs_user', JSON.stringify(updatedUser));
     } catch (_) {}
   };
 
@@ -42,6 +47,8 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     setToken(null);
     try {
+      sessionStorage.removeItem('frs_user');
+      sessionStorage.removeItem('frs_token');
       localStorage.removeItem('frs_user');
       localStorage.removeItem('frs_token');
       localStorage.removeItem('frs_activeTab');

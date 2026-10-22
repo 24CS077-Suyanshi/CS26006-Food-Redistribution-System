@@ -64,8 +64,12 @@ function MainAppContent() {
     const hash = window.location.hash.replace('#', '').trim();
     if (hash) {
       const topTab = hash.split('/')[0];
-      if (topTab === 'dashboard' && user) {
-        return 'dashboard';
+      if (topTab === 'dashboard') {
+        if (user) return 'dashboard';
+        try {
+          window.history.replaceState({ tab: 'home' }, '', window.location.pathname);
+        } catch (_) {}
+        return 'home';
       }
       if (['ai-predictor', 'auth', 'home'].includes(topTab)) {
         return topTab;
@@ -79,9 +83,11 @@ function MainAppContent() {
 
   // If user logs out or is not logged in while activeTab is dashboard, redirect to home
   useEffect(() => {
-    if (!user && activeTab === 'dashboard') {
+    if (!user && (activeTab === 'dashboard' || window.location.hash.startsWith('#dashboard'))) {
       setActiveTab('home');
-      window.history.replaceState({ tab: 'home' }, '', window.location.pathname);
+      try {
+        window.history.replaceState({ tab: 'home' }, '', window.location.pathname);
+      } catch (_) {}
     }
   }, [user, activeTab]);
 
