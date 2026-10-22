@@ -4,21 +4,21 @@ import axios from 'axios';
 import { API_BASE_URL } from '../apiConfig';
 
 const foodTypes = [
-  { id: 'cooked-rice', label: '🍚 Cooked Rice / Dal', baseHours: 4 },
-  { id: 'bread', label: '🍞 Bread & Bakery', baseHours: 8 },
-  { id: 'curry', label: '🍛 Curry / Sabzi', baseHours: 3 },
-  { id: 'non-veg', label: '🍗 Non-Vegetarian Dishes', baseHours: 2 },
-  { id: 'fruits', label: '🍎 Fruits & Salads', baseHours: 6 },
-  { id: 'dairy', label: '🥛 Dairy / Milk Products', baseHours: 5 },
-  { id: 'packed', label: '📦 Sealed / Packed Food', baseHours: 24 },
-  { id: 'sweets', label: '🍮 Sweets / Desserts', baseHours: 12 }
+  { id: 'cooked-rice', label: '🍚 Cooked Rice / Dal', baseHours: 8 },
+  { id: 'bread', label: '🍞 Bread & Bakery / Roti', baseHours: 12 },
+  { id: 'curry', label: '🍛 Curry / Sabzi', baseHours: 8 },
+  { id: 'non-veg', label: '🍗 Non-Vegetarian Dishes', baseHours: 6 },
+  { id: 'fruits', label: '🍎 Fruits & Salads', baseHours: 8 },
+  { id: 'dairy', label: '🥛 Dairy / Milk Products', baseHours: 6 },
+  { id: 'packed', label: '📦 Sealed / Packed Food', baseHours: 48 },
+  { id: 'sweets', label: '🍮 Sweets / Desserts', baseHours: 24 }
 ];
 
 const storageTypes = [
   { id: 'room', label: 'Room Temperature (25°C)', modifier: 0 },
-  { id: 'cool', label: 'Cool Room (12–15°C)', modifier: 3 },
-  { id: 'refrigerated', label: 'Refrigerated (0–4°C)', modifier: 8 },
-  { id: 'hot', label: 'Hot Storage (>60°C)', modifier: 2 }
+  { id: 'cool', label: 'Cool Room (12–15°C)', modifier: 4 },
+  { id: 'refrigerated', label: 'Refrigerated (0–4°C)', modifier: 16 },
+  { id: 'hot', label: 'Hot Storage (>60°C)', modifier: 4 }
 ];
 
 function GaugeRing({ hours, maxHours = 12 }) {
@@ -58,10 +58,10 @@ function getRecommendationClass(hours) {
 }
 
 function getRecommendationText(hours, foodLabel, storageLabel) {
-  if (hours >= 8) return `✅ Food is safe for consumption. The ${foodLabel.split(' ').slice(1).join(' ')} stored under ${storageLabel} has a generous safe window. Distribute confidently to NGOs and families.`;
-  if (hours >= 4) return `⚠️ Food is safe but act quickly. Distribute within the next ${hours} hours. Coordinate pickup now to ensure quality.`;
-  if (hours >= 2) return `🔶 Urgent pickup needed! Only ${hours} hours remaining. Contact your nearest NGO volunteer immediately for emergency pickup.`;
-  return `🚨 Critical: Food safety window is less than 2 hours. Immediate action required or food must be discarded per FSSAI guidelines.`;
+  if (hours >= 6) return `✅ Food is completely fresh and safe for consumption. The ${foodLabel.split(' ').slice(1).join(' ')} stored under ${storageLabel} has a generous safe window. Distribute confidently to NGOs and families.`;
+  if (hours >= 3) return `✅ Food is good and safe to distribute. Distribute within the next ${hours} hours. Coordinate pickup now to ensure quality.`;
+  if (hours > 0) return `🔶 Urgent pickup needed! Only ${hours} hours remaining. Contact your nearest NGO volunteer immediately for emergency delivery.`;
+  return `🚨 Safe consumption window has elapsed. Food must be discarded per safety guidelines.`;
 }
 
 export default function AIPredictionPage() {
