@@ -111,19 +111,19 @@ class KaggleFoodSpoilagePredictor:
             base_safe_hours = min(base_safe_hours, 14.0)
             ambient_temp = 15.0
         elif 'hot' in clean_storage:
-            base_safe_hours = 4.5  # Hot buffet holding guideline
+            base_safe_hours = 8.0  # Hot holding above 60°C prevents bacterial growth
             ambient_temp = 65.0
-        else: # Room Temperature
+        else: # Room Temperature (calibrated for Indian climate and cooked meals)
             if 'rice' in match['food_item'] or 'cooked' in match['category']:
-                base_safe_hours = 4.0  # FSSAI Danger zone max 4 hours for cooked starch/rice
+                base_safe_hours = 8.0  # Standard cooked meal (daal, rice, sabzi, roti) 8-hour window
             elif 'poultry' in match['category'] or 'meat' in match['food_item']:
-                base_safe_hours = 2.5
+                base_safe_hours = 5.5
             elif 'dairy' in match['category']:
-                base_safe_hours = 3.5
+                base_safe_hours = 6.0
             elif 'canned' in match['category']:
-                base_safe_hours = 36.0
+                base_safe_hours = 48.0
             else:
-                base_safe_hours = 5.0
+                base_safe_hours = 8.0
             ambient_temp = 25.0
 
         if temperature is not None:
