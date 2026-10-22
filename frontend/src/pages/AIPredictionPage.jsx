@@ -136,8 +136,8 @@ export default function AIPredictionPage() {
             </h2>
           </div>
         </div>
-        <p style={{ color: '#dcfce7', fontSize: '0.92rem', maxWidth: '75ch', lineHeight: 1.7, marginTop: '0.5rem' }}>
-          Trained on the <span style={{ color: '#ffffff', fontWeight: 900, background: 'rgba(255, 255, 255, 0.22)', padding: '2px 8px', borderRadius: '6px', border: '1px solid rgba(255, 255, 255, 0.35)', display: 'inline-block' }}>Kaggle Food Spoilage Dataset (1,501 Records)</span> with USDA, FAO, and FSSAI food safety parameters to predict remaining safe consumption hours and detect spoilage signs.
+        <p style={{ color: '#86efac', fontSize: '0.92rem', maxWidth: '70ch', lineHeight: 1.6, marginTop: '0.4rem' }}>
+          Trained on the <strong style={{ color: '#ffffff', fontWeight: 700 }}>Kaggle Food Spoilage Dataset (1,501 Records)</strong> with USDA, FAO, and FSSAI food safety parameters to predict remaining safe consumption hours and detect spoilage signs.
         </p>
         <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem', flexWrap: 'wrap' }}>
           {[
