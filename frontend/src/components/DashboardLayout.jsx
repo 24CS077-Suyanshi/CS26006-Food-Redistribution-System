@@ -171,26 +171,12 @@ export default function DashboardLayout({
                   <input
                     type="text"
                     className="form-input"
-                    style={{ width: '100%', paddingLeft: '2.5rem', paddingRight: '3.5rem', fontSize: '0.88rem' }}
+                    style={{ width: '100%', paddingLeft: '2.5rem', paddingRight: '1rem', fontSize: '0.88rem' }}
                     placeholder="Search..."
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
                   />
                   <Search size={16} color="var(--text-muted)" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
-                  <span className="hidden sm:inline-block" style={{
-                    position: 'absolute',
-                    right: '10px',
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    background: '#F1F5F9',
-                    fontSize: '0.68rem',
-                    fontWeight: 700,
-                    padding: '0.2rem 0.4rem',
-                    borderRadius: '4px',
-                    color: 'var(--text-muted)'
-                  }}>
-                    Ctrl K
-                  </span>
                 </>
               )}
             </div>
