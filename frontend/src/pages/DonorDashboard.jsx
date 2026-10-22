@@ -191,8 +191,10 @@ export default function DonorDashboard({ donations = [], setDonations, requests 
   };
 
   const myDonations = donations.filter(d => 
-    (user?.id && (d.donor_id === user.id || String(d.donor_id) === String(user.id))) ||
-    (user?.name && d.donor_name && d.donor_name.toLowerCase() === user.name.toLowerCase())
+    d.id !== 106 && (
+      (user?.id && (d.donor_id === user.id || String(d.donor_id) === String(user.id))) ||
+      (user?.name && d.donor_name && d.donor_name.toLowerCase() === user.name.toLowerCase())
+    )
   );
 
   const myDonationIds = new Set(myDonations.map(d => d.id));

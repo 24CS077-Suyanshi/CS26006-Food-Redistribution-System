@@ -59,14 +59,7 @@ const INITIAL_DONATIONS = [
 function MainAppContent() {
   const { user } = useAuth();
   
-  // Clean up any stale activeTab from past sessions so initial visit always opens Home Page
-  useEffect(() => {
-    try {
-      localStorage.removeItem('frs_activeTab');
-    } catch (_) {}
-  }, []);
-
-  // Default to 'home' on initial website visit, unless explicit hash requested
+  // Default to 'dashboard' if user is already logged in, otherwise 'home'
   const [activeTab, setActiveTab] = useState(() => {
     const hash = window.location.hash.replace('#', '').trim();
     if (hash) {
@@ -74,11 +67,14 @@ function MainAppContent() {
       if (topTab === 'dashboard' && user) {
         return 'dashboard';
       }
-      if (['ai-predictor', 'auth'].includes(topTab)) {
+      if (['ai-predictor', 'auth', 'home'].includes(topTab)) {
         return topTab;
       }
     }
-    // Always default to 'home'
+    // If user is already logged in, open their dashboard directly
+    if (user) {
+      return 'dashboard';
+    }
     return 'home';
   });
   const [authMode, setAuthMode] = useState('login');
@@ -154,8 +150,9 @@ function MainAppContent() {
           axios.get(`${API_BASE_URL}/api/donations`),
           axios.get(`${API_BASE_URL}/api/requests`)
         ]);
-        setDonations(donationsRes.data);
-        setRequests(requestsRes.data);
+        const cleanedDonations = (donationsRes.data || []).filter(d => d.id !== 106);
+        setDonations(cleanedDonations);
+        setRequests(requestsRes.data || []);
       } catch (error) {
         console.error('Error fetching data:', error);
       }

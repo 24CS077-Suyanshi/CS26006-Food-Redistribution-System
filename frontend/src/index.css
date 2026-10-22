@@ -95,7 +95,7 @@ body {
 
 strong {
   font-weight: 900;
-  color: var(--text-main);
+  color: inherit;
 }
 
 /* App Master Layout */
@@ -2748,6 +2748,11 @@ strong {
   color: white;
   position: relative;
   overflow: hidden;
+}
+
+.ai-header-banner strong,
+.dashboard-banner-responsive strong {
+  color: #ffffff !important;
 }
 
 .ai-header-banner::before {

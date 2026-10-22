@@ -561,11 +561,13 @@ def get_donations():
             print("DB Error:", e)
             if conn: conn.close()
 
-    results = MOCK_DONATIONS
+    global MOCK_DONATIONS
+    MOCK_DONATIONS = load_persistent_donations()
+    results = list(MOCK_DONATIONS)
     if status:
-        results = [d for d in results if d['status'].lower() == status.lower()]
+        results = [d for d in results if d.get('status', '').lower() == status.lower()]
     if category and category != 'All':
-        results = [d for d in results if d['category'].lower() == category.lower()]
+        results = [d for d in results if d.get('category', '').lower() == category.lower()]
 
     return jsonify(results)
 
@@ -1689,5 +1691,5 @@ def update_admin_settings():
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=False)
+    app.run(host='0.0.0.0', port=port, debug=True)
 
