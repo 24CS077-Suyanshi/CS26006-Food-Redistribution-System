@@ -59,7 +59,7 @@ const INITIAL_DONATIONS = [
 function MainAppContent() {
   const { user } = useAuth();
   
-  // Default to 'dashboard' if user is already logged in, otherwise 'home'
+  // Always default to 'home' page on initial website visit
   const [activeTab, setActiveTab] = useState(() => {
     const hash = window.location.hash.replace('#', '').trim();
     if (hash) {
@@ -71,10 +71,7 @@ function MainAppContent() {
         return topTab;
       }
     }
-    // If user is already logged in, open their dashboard directly
-    if (user) {
-      return 'dashboard';
-    }
+    // Always default to 'home'
     return 'home';
   });
   const [authMode, setAuthMode] = useState('login');
