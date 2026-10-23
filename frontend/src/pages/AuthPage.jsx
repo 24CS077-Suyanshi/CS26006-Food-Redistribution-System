@@ -464,13 +464,6 @@ export default function AuthPage({ onLoginSuccess, initialMode = 'login', initia
             )}
           </button>
 
-          <button
-            type="button"
-            onClick={handleDemoAccess}
-            className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-emerald-500 bg-emerald-50/80 px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm font-black text-emerald-800 transition hover:bg-emerald-100 cursor-pointer"
-          >
-            ⚡ 1-Click Demo Login as {role.toUpperCase()}
-          </button>
 
           <div className="mt-1 sm:mt-2 text-center text-xs sm:text-sm font-semibold text-slate-600">
             {isLogin ? "Don't have an account? " : 'Already have an account? '}
